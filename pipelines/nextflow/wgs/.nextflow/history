@@ -1,1 +1,0 @@
-2026-04-08 12:02:12	-	amazing_allen	-	9b8e0cd30e8338f48f920689c5759b4f	b5d121c7-3662-4ace-b30f-d4fba9b1c89d	nextflow -q run /Users/mathob/git/github/warp/pipelines/nextflow/wgs/WholeGenomeGermlineSingleSampleFastq.nf -preview
