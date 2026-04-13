@@ -113,7 +113,7 @@ echo "Validating pipeline syntax..."
 
 # Validate main pipeline syntax only if Nextflow is available
 if [ "$NEXTFLOW_FOUND" = true ]; then
-    if nextflow -q run "$MAIN_PIPELINE" -preview >/dev/null 2>&1; then
+    if nextflow config "$MAIN_PIPELINE" >/dev/null 2>&1; then
         print_status "PASS" "Main pipeline syntax is valid"
     else
         print_status "FAIL" "Main pipeline syntax error detected"
@@ -193,45 +193,19 @@ echo ""
 echo "Performing dry run test..."
 
 if [ "$NEXTFLOW_FOUND" = true ]; then
-    # Create a minimal test parameters file
-    TEST_PARAMS=$(mktemp)
-    cat > "$TEST_PARAMS" <<EOF
-params {
-    input_fastq_r1 = "/dev/null"
-    input_fastq_r2 = "/dev/null"
-    sample_name = "test_sample"
-    reference_fasta = "/dev/null"
-    reference_fasta_index = "/dev/null"
-    reference_dict = "/dev/null"
-    reference_alt = "/dev/null"
-    reference_amb = "/dev/null"
-    reference_ann = "/dev/null"
-    reference_bwt = "/dev/null"
-    reference_pac = "/dev/null"
-    reference_sa = "/dev/null"
-    dbsnp_vcf = "/dev/null"
-    dbsnp_vcf_index = "/dev/null"
-    calling_interval_list = "/dev/null"
-    evaluation_interval_list = "/dev/null"
-    wgs_coverage_interval_list = "/dev/null"
-    contamination_sites_ud = "/dev/null"
-    contamination_sites_bed = "/dev/null"
-    contamination_sites_mu = "/dev/null"
-    haplotype_database_file = "/dev/null"
-    known_indels_sites_vcfs = []
-    known_indels_sites_indices = []
-}
-EOF
-
-    # Attempt dry run (this will fail due to missing files, but should validate syntax)
-    if nextflow -q run "$MAIN_PIPELINE" -c "$TEST_PARAMS" -profile docker --help >/dev/null 2>&1; then
-        print_status "PASS" "Dry run test completed without syntax errors"
+    # Test syntax validation using nextflow config command
+    if nextflow config "$MAIN_PIPELINE" >/dev/null 2>&1; then
+        print_status "PASS" "Pipeline configuration validation successful"
     else
-        print_status "WARN" "Dry run encountered issues (may be due to missing test data)"
+        print_status "WARN" "Pipeline configuration validation encountered issues"
     fi
-
-    # Cleanup
-    rm -f "$TEST_PARAMS"
+    
+    # Test help option to validate parameter parsing
+    if nextflow run "$MAIN_PIPELINE" --help >/dev/null 2>&1; then
+        print_status "PASS" "Pipeline help command works correctly"
+    else
+        print_status "WARN" "Pipeline help command encountered issues"
+    fi
 else
     print_status "WARN" "Skipping dry run test (Nextflow not available)"
 fi

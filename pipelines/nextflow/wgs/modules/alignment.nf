@@ -11,8 +11,8 @@ process BWA_MEM_ALIGN {
     
     conda (params.enable_conda ? "bioconda::bwa=0.7.17 bioconda::samtools=1.17 bioconda::picard=3.0.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bwa:0.7.17--h5bf99c6_8' :
-        'quay.io/biocontainers/bwa:0.7.17--h5bf99c6_8' }"
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/samtools-picard-bwa:1.0.0-0.7.15-2.23.8-1626449438' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/samtools-picard-bwa:1.0.0-0.7.15-2.23.8-1626449438' }"
     
     input:
     tuple path(fastq_r1), path(fastq_r2)
@@ -91,8 +91,8 @@ process DRAGMAP_ALIGN {
     
     conda (params.enable_conda ? "bioconda::dragmap=1.2.1 bioconda::samtools=1.17" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/dragmap:1.2.1--h1b792b2_0' :
-        'quay.io/biocontainers/dragmap:1.2.1--h1b792b2_0' }"
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/dragmap:1.2.1' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/dragmap:1.2.1' }"
     
     input:
     tuple path(fastq_r1), path(fastq_r2)
