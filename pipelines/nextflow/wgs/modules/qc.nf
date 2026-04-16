@@ -146,7 +146,7 @@ process CHECK_CONTAMINATION {
     output:
     path "${base_name}.selfSM", emit: selfSM
     path "${base_name}.Ancestry", emit: contamination_ancestry, optional: true
-    path "${base_name}.contamination_value.txt", emit: contamination_value
+    stdout emit: contamination_value
     path "versions.yml", emit: versions
     
     when:
@@ -173,11 +173,11 @@ process CHECK_CONTAMINATION {
         --DisableSanityCheck \\
         ${args}
     
-    # Extract contamination value from .selfSM file
+    # Extract contamination value from .selfSM file and output to stdout
     if [ -f ${base_name}.selfSM ]; then
-        awk 'NR==2 {print \$7}' ${base_name}.selfSM > ${base_name}.contamination_value.txt
+        awk 'NR==2 {print \$7}' ${base_name}.selfSM
     else
-        echo "0.0" > ${base_name}.contamination_value.txt
+        echo "0.0"
     fi
     
     cat <<-END_VERSIONS > versions.yml
@@ -188,9 +188,9 @@ process CHECK_CONTAMINATION {
     
     stub:
     """
+    echo "0.0"
     touch ${base_name}.selfSM
     touch ${base_name}.Ancestry
-    touch ${base_name}.contamination_value.txt
     touch versions.yml
     """
 }
