@@ -335,8 +335,8 @@ workflow {
         output_vcf = HAPLOTYPE_CALLER.out.gvcf
         output_vcf_index = HAPLOTYPE_CALLER.out.gvcf_index
         duplicate_metrics = MARK_DUPLICATES.out.duplicate_metrics
-        wgs_metrics = COLLECT_WGS_METRICS.out.metrics
-        raw_wgs_metrics = COLLECT_RAW_WGS_METRICS.out.metrics
+        wgs_metrics = COLLECT_WGS_METRICS.out.wgs_metrics
+        raw_wgs_metrics = COLLECT_RAW_WGS_METRICS.out.raw_wgs_metrics
         contamination_value = CHECK_CONTAMINATION.out.contamination_value
         selfSM = CHECK_CONTAMINATION.out.selfSM
         agg_alignment_summary_metrics = AGGREGATED_BAM_QC.out.alignment_summary_metrics

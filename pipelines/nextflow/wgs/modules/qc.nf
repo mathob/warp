@@ -21,7 +21,9 @@ process COLLECT_WGS_METRICS {
     path reference_fasta
     path reference_fasta_index
     path reference_dict
+    path wgs_coverage_interval_list
     val base_name
+    val read_length
     
     output:
     path "${base_name}.wgs_metrics.txt", emit: wgs_metrics
@@ -33,6 +35,7 @@ process COLLECT_WGS_METRICS {
     script:
     def args = task.ext.args ?: ''
     def memory_gb = task.memory.toGiga()
+    def intervals_arg = wgs_coverage_interval_list ? "INTERVALS=${wgs_coverage_interval_list}" : ""
     
     """
     java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectWgsMetrics \\
@@ -42,6 +45,8 @@ process COLLECT_WGS_METRICS {
         MINIMUM_MAPPING_QUALITY=20 \\
         MINIMUM_BASE_QUALITY=20 \\
         COVERAGE_CAP=250 \\
+        READ_LENGTH=${read_length} \\
+        ${intervals_arg} \\
         ${args}
     
     cat <<-END_VERSIONS > versions.yml
@@ -76,7 +81,9 @@ process COLLECT_RAW_WGS_METRICS {
     path reference_fasta
     path reference_fasta_index
     path reference_dict
+    path wgs_coverage_interval_list
     val base_name
+    val read_length
     
     output:
     path "${base_name}.raw_wgs_metrics.txt", emit: raw_wgs_metrics
@@ -88,6 +95,7 @@ process COLLECT_RAW_WGS_METRICS {
     script:
     def args = task.ext.args ?: ''
     def memory_gb = task.memory.toGiga()
+    def intervals_arg = wgs_coverage_interval_list ? "INTERVALS=${wgs_coverage_interval_list}" : ""
     
     """
     java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectRawWgsMetrics \\
@@ -96,6 +104,8 @@ process COLLECT_RAW_WGS_METRICS {
         REFERENCE_SEQUENCE=${reference_fasta} \\
         MINIMUM_MAPPING_QUALITY=20 \\
         MINIMUM_BASE_QUALITY=20 \\
+        READ_LENGTH=${read_length} \\
+        ${intervals_arg} \\
         ${args}
     
     cat <<-END_VERSIONS > versions.yml
@@ -127,14 +137,15 @@ process CHECK_CONTAMINATION {
     input:
     path input_bam
     path input_bai
+    path contamination_sites_ud
     path contamination_sites_bed
     path contamination_sites_mu
-    path contamination_sites_ud
     val base_name
     
     output:
-    path "${base_name}.selfSM", emit: contamination_selfSM
+    path "${base_name}.selfSM", emit: selfSM
     path "${base_name}.Ancestry", emit: contamination_ancestry, optional: true
+    path "${base_name}.contamination_value.txt", emit: contamination_value
     path "versions.yml", emit: versions
     
     when:
@@ -153,6 +164,13 @@ process CHECK_CONTAMINATION {
         --DisableSanityCheck \\
         ${args}
     
+    # Extract contamination value from .selfSM file
+    if [ -f ${base_name}.selfSM ]; then
+        awk 'NR==2 {print \$7}' ${base_name}.selfSM > ${base_name}.contamination_value.txt
+    else
+        echo "0.0" > ${base_name}.contamination_value.txt
+    fi
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         verifybamid2: \$(VerifyBamID --help | head -1 | sed 's/^.*VerifyBamID //; s/ .*\$//')
@@ -163,6 +181,7 @@ process CHECK_CONTAMINATION {
     """
     touch ${base_name}.selfSM
     touch ${base_name}.Ancestry
+    touch ${base_name}.contamination_value.txt
     touch versions.yml
     """
 }
@@ -181,53 +200,63 @@ process AGGREGATED_BAM_QC {
         'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/picard-cloud:2.23.8' }"
     
     input:
-    path duplicate_metrics
-    path wgs_metrics
-    path raw_wgs_metrics
-    path contamination_selfSM
+    path input_bam
+    path input_bai
+    path reference_fasta
+    path reference_fasta_index
+    path reference_dict
+    path haplotype_database_file
     val base_name
+    val sample_name
     
     output:
-    path "${base_name}.aggregated_metrics.txt", emit: aggregated_metrics
+    path "${base_name}.alignment_summary_metrics", emit: alignment_summary_metrics
+    path "${base_name}.insert_size_metrics", emit: insert_size_metrics
+    path "${base_name}.gc_bias_metrics", emit: gc_bias_metrics
     path "versions.yml", emit: versions
     
     when:
     task.ext.when == null || task.ext.when
     
     script:
+    def args = task.ext.args ?: ''
+    def memory_gb = task.memory.toGiga()
+    
     """
-    # Create aggregated metrics file
-    echo "# Aggregated QC Metrics for ${base_name}" > ${base_name}.aggregated_metrics.txt
-    echo "" >> ${base_name}.aggregated_metrics.txt
+    # Collect alignment summary metrics
+    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectAlignmentSummaryMetrics \\
+        INPUT=${input_bam} \\
+        OUTPUT=${base_name}.alignment_summary_metrics \\
+        REFERENCE_SEQUENCE=${reference_fasta} \\
+        ${args}
     
-    # Add duplicate metrics
-    echo "## Duplicate Metrics" >> ${base_name}.aggregated_metrics.txt
-    cat ${duplicate_metrics} >> ${base_name}.aggregated_metrics.txt
-    echo "" >> ${base_name}.aggregated_metrics.txt
+    # Collect insert size metrics
+    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectInsertSizeMetrics \\
+        INPUT=${input_bam} \\
+        OUTPUT=${base_name}.insert_size_metrics \\
+        HISTOGRAM_FILE=${base_name}.insert_size_histogram.pdf \\
+        ${args}
     
-    # Add WGS metrics
-    echo "## WGS Metrics" >> ${base_name}.aggregated_metrics.txt
-    cat ${wgs_metrics} >> ${base_name}.aggregated_metrics.txt
-    echo "" >> ${base_name}.aggregated_metrics.txt
-    
-    # Add raw WGS metrics
-    echo "## Raw WGS Metrics" >> ${base_name}.aggregated_metrics.txt
-    cat ${raw_wgs_metrics} >> ${base_name}.aggregated_metrics.txt
-    echo "" >> ${base_name}.aggregated_metrics.txt
-    
-    # Add contamination check
-    echo "## Contamination Check" >> ${base_name}.aggregated_metrics.txt
-    cat ${contamination_selfSM} >> ${base_name}.aggregated_metrics.txt
+    # Collect GC bias metrics
+    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectGcBiasMetrics \\
+        INPUT=${input_bam} \\
+        OUTPUT=${base_name}.gc_bias_metrics \\
+        CHART_OUTPUT=${base_name}.gc_bias_metrics.pdf \\
+        SUMMARY_OUTPUT=${base_name}.gc_bias_summary_metrics \\
+        REFERENCE_SEQUENCE=${reference_fasta} \\
+        ${args}
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        bash: \$(echo \$(bash --version 2>&1) | sed 's/^.*bash, version //; s/ .*\$//')
+        picard: \$(echo \$(java -jar \${PICARD_JAR} CollectAlignmentSummaryMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
     END_VERSIONS
     """
     
     stub:
     """
-    touch ${base_name}.aggregated_metrics.txt
+    touch ${base_name}.alignment_summary_metrics
+    touch ${base_name}.insert_size_metrics
+    touch ${base_name}.gc_bias_metrics
     touch versions.yml
     """
 }
