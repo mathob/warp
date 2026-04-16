@@ -37,7 +37,7 @@ process MARK_DUPLICATES {
     }
     
     """
-    java -Xmx${avail_mem}M -jar \$PICARD_HOME/picard.jar MarkDuplicates \\
+    java -Xmx${avail_mem}M -jar /usr/picard/picard.jar MarkDuplicates \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.duplicates_marked.bam \\
         METRICS_FILE=${base_name}.duplicate_metrics.txt \\
@@ -51,7 +51,7 @@ process MARK_DUPLICATES {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(java -jar \$PICARD_HOME/picard.jar MarkDuplicates --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
+        picard: \$(java -jar /usr/picard/picard.jar MarkDuplicates --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
     END_VERSIONS
     """
     
@@ -216,7 +216,7 @@ process GATHER_BAM_FILES {
     def input_list = input_bams.collect { "INPUT=$it" }.join(' ')
     
     """
-    java -Xmx${avail_mem}M -jar \$PICARD_HOME/picard.jar GatherBamFiles \\
+    java -Xmx${avail_mem}M -jar /usr/picard/picard.jar GatherBamFiles \\
         ${input_list} \\
         OUTPUT=${base_name}.gathered.bam \\
         CREATE_INDEX=true \\
@@ -225,7 +225,7 @@ process GATHER_BAM_FILES {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(java -jar \$PICARD_HOME/picard.jar GatherBamFiles --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
+        picard: \$(java -jar /usr/picard/picard.jar GatherBamFiles --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
     END_VERSIONS
     """
     
