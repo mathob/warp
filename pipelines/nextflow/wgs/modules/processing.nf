@@ -47,9 +47,10 @@ process MARK_DUPLICATES {
         CLEAR_DT=false \\
         ADD_PG_TAG_TO_READS=false \\
         CREATE_INDEX=true \\
-        CREATE_INDEX=true \\
         ${args}
     
+    mv ${base_name}.duplicates_marked.bai ${base_name}.duplicates_marked.bam.bai
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         picard: \$(java -jar /usr/picard/picard.jar MarkDuplicates --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
