@@ -227,10 +227,10 @@ workflow {
         
         APPLY_BQSR(
             SORT_BAM.out.sorted_bam,
-            BASE_RECALIBRATOR.out.recal_table,
             reference_fasta_ch,
             reference_fasta_index_ch,
             reference_dict_ch,
+            BASE_RECALIBRATOR.out.recal_table,
             base_file_name
         )
         
