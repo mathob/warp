@@ -140,6 +140,7 @@ process CHECK_CONTAMINATION {
     path contamination_sites_ud
     path contamination_sites_bed
     path contamination_sites_mu
+    path reference_fasta
     val base_name
     
     output:
@@ -167,6 +168,7 @@ process CHECK_CONTAMINATION {
         --MeanPath ${contamination_sites_mu} \\
         --BedPath ${contamination_sites_bed} \\
         --BamFile ${input_bam} \\
+        --Reference ${reference_fasta} \\
         --Output ${base_name} \\
         --DisableSanityCheck \\
         ${args}

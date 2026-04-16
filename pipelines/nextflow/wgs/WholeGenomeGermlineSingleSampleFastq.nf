@@ -277,6 +277,7 @@ workflow {
         contamination_sites_ud_ch,
         contamination_sites_bed_ch,
         contamination_sites_mu_ch,
+        reference_fasta_ch,
         base_file_name
     )
     
