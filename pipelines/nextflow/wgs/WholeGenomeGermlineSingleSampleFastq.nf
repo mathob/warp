@@ -249,6 +249,7 @@ workflow {
         final_bam_index_ch,
         reference_fasta_ch,
         reference_fasta_index_ch,
+        reference_dict_ch,
         wgs_interval_ch,
         base_file_name,
         read_length
@@ -259,6 +260,7 @@ workflow {
         final_bam_index_ch,
         reference_fasta_ch,
         reference_fasta_index_ch,
+        reference_dict_ch,
         wgs_interval_ch,
         base_file_name,
         read_length
