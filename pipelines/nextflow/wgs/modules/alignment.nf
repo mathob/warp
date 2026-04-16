@@ -49,9 +49,15 @@ process BWA_MEM_ALIGN {
         echo "Error: Reference FASTA not found"
         exit 1
     fi
+
+    if [ -f /usr/gitc/bwa ]; then
+        BWA=/usr/gitc/bwa
+    else
+        BWA=bwa
+    fi
     
     # Perform BWA MEM alignment
-    bwa mem \\
+    "\$BWA" mem \\
         -t ${task.cpus} \\
         -R "${read_group}" \\
         ${args} \\
