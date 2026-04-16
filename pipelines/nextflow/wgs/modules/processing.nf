@@ -47,6 +47,7 @@ process MARK_DUPLICATES {
         CLEAR_DT=false \\
         ADD_PG_TAG_TO_READS=false \\
         CREATE_INDEX=true \\
+        CREATE_INDEX=true \\
         ${args}
     
     cat <<-END_VERSIONS > versions.yml
