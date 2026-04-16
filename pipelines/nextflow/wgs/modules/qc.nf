@@ -38,7 +38,7 @@ process COLLECT_WGS_METRICS {
     def intervals_arg = wgs_coverage_interval_list ? "INTERVALS=${wgs_coverage_interval_list}" : ""
     
     """
-    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectWgsMetrics \\
+    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectWgsMetrics \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.wgs_metrics.txt \\
         REFERENCE_SEQUENCE=${reference_fasta} \\
@@ -51,7 +51,7 @@ process COLLECT_WGS_METRICS {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(echo \$(java -jar \${PICARD_JAR} CollectWgsMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
+        picard: \$(echo \$(java -jar /usr/picard/picard.jar CollectWgsMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
     END_VERSIONS
     """
     
@@ -98,7 +98,7 @@ process COLLECT_RAW_WGS_METRICS {
     def intervals_arg = wgs_coverage_interval_list ? "INTERVALS=${wgs_coverage_interval_list}" : ""
     
     """
-    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectRawWgsMetrics \\
+    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectRawWgsMetrics \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.raw_wgs_metrics.txt \\
         REFERENCE_SEQUENCE=${reference_fasta} \\
@@ -110,7 +110,7 @@ process COLLECT_RAW_WGS_METRICS {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(echo \$(java -jar \${PICARD_JAR} CollectRawWgsMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
+        picard: \$(echo \$(java -jar /usr/picard/picard.jar CollectRawWgsMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
     END_VERSIONS
     """
     
@@ -224,21 +224,21 @@ process AGGREGATED_BAM_QC {
     
     """
     # Collect alignment summary metrics
-    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectAlignmentSummaryMetrics \\
+    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectAlignmentSummaryMetrics \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.alignment_summary_metrics \\
         REFERENCE_SEQUENCE=${reference_fasta} \\
         ${args}
     
     # Collect insert size metrics
-    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectInsertSizeMetrics \\
+    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectInsertSizeMetrics \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.insert_size_metrics \\
         HISTOGRAM_FILE=${base_name}.insert_size_histogram.pdf \\
         ${args}
     
     # Collect GC bias metrics
-    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} CollectGcBiasMetrics \\
+    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectGcBiasMetrics \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.gc_bias_metrics \\
         CHART_OUTPUT=${base_name}.gc_bias_metrics.pdf \\
@@ -248,7 +248,7 @@ process AGGREGATED_BAM_QC {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(echo \$(java -jar \${PICARD_JAR} CollectAlignmentSummaryMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
+        picard: \$(echo \$(java -jar /usr/picard/picard.jar CollectAlignmentSummaryMetrics --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
     END_VERSIONS
     """
     
@@ -294,7 +294,7 @@ process VALIDATE_SAM_FILE {
     def memory_gb = task.memory.toGiga()
     
     """
-    java -Xmx${memory_gb-1}G -jar \${PICARD_JAR} ValidateSamFile \\
+    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar ValidateSamFile \\
         INPUT=${input_bam} \\
         OUTPUT=${base_name}.validation_report.txt \\
         REFERENCE_SEQUENCE=${reference_fasta} \\
@@ -303,7 +303,7 @@ process VALIDATE_SAM_FILE {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(echo \$(java -jar \${PICARD_JAR} ValidateSamFile --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
+        picard: \$(echo \$(java -jar /usr/picard/picard.jar ValidateSamFile --version 2>&1) | grep -o 'Version:[0-9.]*' | cut -f2 -d:)
     END_VERSIONS
     """
     
