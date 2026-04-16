@@ -155,7 +155,14 @@ process CHECK_CONTAMINATION {
     def args = task.ext.args ?: ''
     
     """
-    VerifyBamID \\
+    if [ -f /usr/gitc/VerifyBamID ]; then
+        VerifyBamID=/usr/gitc/VerifyBamID
+    else
+        VerifyBamID=VerifyBamID
+    fi
+    
+
+    "\$VerifyBamID" \\
         --UDPath ${contamination_sites_ud} \\
         --MeanPath ${contamination_sites_mu} \\
         --BedPath ${contamination_sites_bed} \\
