@@ -130,8 +130,14 @@ process HAPLOTYPE_CALLER {
     path reference_fasta
     path reference_fasta_index
     path reference_dict
+    path calling_interval_list
+    path dbsnp_vcf
+    path dbsnp_vcf_index
+    val contamination_value
     val base_name
-    path intervals // Optional intervals file
+    val use_gatk3_haplotype_caller
+    val run_dragen_mode_variant_calling
+    val use_spanning_event_genotyping
     
     output:
     path "${base_name}.g.vcf.gz", emit: gvcf
@@ -143,7 +149,9 @@ process HAPLOTYPE_CALLER {
     
     script:
     def args = task.ext.args ?: ''
-    def intervals_arg = intervals ? "--intervals ${intervals}" : ""
+    def intervals_arg = calling_interval_list ? "--intervals ${calling_interval_list}" : ""
+    def dbsnp_arg = dbsnp_vcf ? "--dbsnp ${dbsnp_vcf}" : ""
+    def contamination_arg = contamination_value ? "--contamination-fraction-to-filter ${contamination_value}" : ""
     def memory_gb = task.memory.toGiga()
     
     """
@@ -153,6 +161,8 @@ process HAPLOTYPE_CALLER {
         --output ${base_name}.g.vcf.gz \\
         --emit-ref-confidence GVCF \\
         ${intervals_arg} \\
+        ${dbsnp_arg} \\
+        ${contamination_arg} \\
         ${args}
     
     cat <<-END_VERSIONS > versions.yml
