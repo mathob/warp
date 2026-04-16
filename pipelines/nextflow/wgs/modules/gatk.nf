@@ -97,6 +97,8 @@ process APPLY_BQSR {
         --create-output-bam-index true \\
         ${args}
     
+    mv ${base_name}.recalibrated.bai ${base_name}.recalibrated.bam.bai
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         gatk4: \$(echo \$(gatk --version 2>&1) | sed 's/^.*(GATK) v//; s/ .*\$//')
