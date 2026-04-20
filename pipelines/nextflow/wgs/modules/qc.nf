@@ -147,6 +147,7 @@ process CHECK_CONTAMINATION {
     path "${base_name}.selfSM", emit: selfSM
     path "${base_name}.Ancestry", emit: contamination_ancestry, optional: true
     stdout emit: contamination_value
+    eval "cat"${base_name}.contamination_value.txt", emit: contamination_value
     path "versions.yml", emit: versions
     
     when:
@@ -175,9 +176,9 @@ process CHECK_CONTAMINATION {
     
     # Extract contamination value from .selfSM file and output to stdout
     if [ -f ${base_name}.selfSM ]; then
-        awk 'NR==2 {print \$7}' ${base_name}.selfSM
+        awk 'NR==2 {print \$7}' ${base_name}.selfSM > ${base_name}.contamination_value.txt
     else
-        echo "0.0"
+        echo "0.0" > ${base_name}.contamination_value.txt
     fi
     
     cat <<-END_VERSIONS > versions.yml
