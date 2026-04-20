@@ -132,7 +132,6 @@ process DRAGMAP_ALIGN {
         --ref-dir . \\
         --RGID ${read_group_id} \\
         --RGSM ${sample_name} \\
-        --RGPL ${read_group_platform} \\
         --num-threads ${task.cpus} \\
         ${args} \\
         --output-file-prefix ${sample_name}.aligned \\
