@@ -135,7 +135,6 @@ process DRAGMAP_ALIGN {
         --num-threads ${task.cpus} \\
         ${args} \\
         --output-file-prefix ${sample_name}.aligned \\
-        --output-format BAM
     
     # Index the BAM file
     samtools index ${sample_name}.aligned.bam
