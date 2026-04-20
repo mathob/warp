@@ -147,7 +147,7 @@ process CHECK_CONTAMINATION {
     path "${base_name}.selfSM", emit: selfSM
     path "${base_name}.Ancestry", emit: contamination_ancestry, optional: true
     stdout emit: contamination_value
-    eval "cat"${base_name}.contamination_value.txt", emit: contamination_value
+    eval "cat ${base_name}.contamination_value.txt", emit: contamination_value
     path "versions.yml", emit: versions
     
     when:
