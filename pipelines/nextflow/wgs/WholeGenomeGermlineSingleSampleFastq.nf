@@ -123,7 +123,6 @@ def run_dragen_mode_variant_calling_ = (params.dragen_functional_equivalence_mod
 def use_spanning_event_genotyping_ = params.dragen_functional_equivalence_mode ? false : (params.dragen_maximum_quality_mode ? true : params.use_spanning_event_genotyping)
 def unmap_contaminant_reads_ = params.dragen_functional_equivalence_mode ? false : (params.dragen_maximum_quality_mode ? true : params.unmap_contaminant_reads)
 def perform_bqsr_ = (params.dragen_functional_equivalence_mode || params.dragen_maximum_quality_mode) ? false : params.perform_bqsr
-def use_bwa_mem_ = (params.dragen_functional_equivalence_mode || params.dragen_maximum_quality_mode) ? false : params.use_bwa_mem
 def use_gatk3_haplotype_caller_ = (params.dragen_functional_equivalence_mode || params.dragen_maximum_quality_mode) ? false : params.use_gatk3_haplotype_caller
 
 /*
@@ -190,8 +189,6 @@ workflow {
         
         DRAGMAP_ALIGN(
             fastq_pairs_ch,
-            reference_fasta_ch,
-            reference_fasta_index_ch,
             dragmap_reference_bin_ch,
             dragmap_hash_table_cfg_bin_ch,
             dragmap_hash_table_cmp_ch,
