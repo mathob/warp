@@ -126,7 +126,7 @@ Many parameters have sensible defaults but can be customized:
 
 - `provide_bam_output`: Set to `true` if you need final BAM files (default: `false`)
 - `perform_bqsr`: Enable/disable base quality score recalibration (default: `true`)
-- `use_bwa_mem`: Use BWA-MEM vs DRAGMAP aligner (default: `true`)
+- `aligner`: Alignment algorithm to use ("dragmap" or "bwa-mem", default: "dragmap")
 - `dragen_functional_equivalence_mode`: DRAGEN compatibility mode (default: `false`)
 
 ## Output Files

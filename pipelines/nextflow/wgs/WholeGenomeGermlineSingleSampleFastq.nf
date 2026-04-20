@@ -84,8 +84,7 @@ params {
     use_spanning_event_genotyping = true
     unmap_contaminant_reads = true
     perform_bqsr = true
-    use_bwa_mem = true
-    use_dragmap = false
+    aligner = "dragmap"  // Options: "dragmap" (default) or "bwa-mem"
     use_dragen_hard_filtering = false
     
     // Scatter settings
@@ -177,8 +176,8 @@ workflow {
     // Combine FASTQ files
     fastq_pairs_ch = fastq_r1_ch.combine(fastq_r2_ch)
     
-    // Alignment step - choose between BWA-MEM and DRAGMAP
-    if (params.use_dragmap) {
+    // Alignment - conditional based on aligner parameter
+    if (params.aligner == "dragmap") {
         // Validate DRAGMAP reference files
         if (!params.dragmap_reference_bin || !params.dragmap_hash_table_cfg_bin || !params.dragmap_hash_table_cmp) {
             error "DRAGMAP alignment selected but required DRAGMAP reference files are missing: dragmap_reference_bin, dragmap_hash_table_cfg_bin, dragmap_hash_table_cmp"
@@ -205,8 +204,8 @@ workflow {
         )
         
         aligned_bam_ch = DRAGMAP_ALIGN.out.aligned_bam
-    } else {
-        // BWA-MEM alignment (default)
+    } else if (params.aligner == "bwa-mem") {
+        // BWA-MEM alignment
         BWA_MEM_ALIGN(
             fastq_pairs_ch,
             reference_fasta_ch,
@@ -226,11 +225,13 @@ workflow {
         )
         
         aligned_bam_ch = BWA_MEM_ALIGN.out.aligned_bam
+    } else {
+        error "Invalid aligner specified: '${params.aligner}'. Valid options are 'dragmap' or 'bwa-mem'"
     }
     
     // Mark duplicates
     MARK_DUPLICATES(
-        BWA_MEM_ALIGN.out.aligned_bam,
+        aligned_bam_ch,
         base_file_name
     )
     
