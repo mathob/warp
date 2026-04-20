@@ -85,6 +85,7 @@ params {
     unmap_contaminant_reads = true
     perform_bqsr = true
     use_bwa_mem = true
+    use_dragmap = false
     use_dragen_hard_filtering = false
     
     // Scatter settings
@@ -130,6 +131,7 @@ def use_gatk3_haplotype_caller_ = (params.dragen_functional_equivalence_mode || 
  * Include processes
  */
 include { BWA_MEM_ALIGN } from './modules/alignment.nf'
+include { DRAGMAP_ALIGN } from './modules/alignment.nf'
 include { MARK_DUPLICATES } from './modules/processing.nf'
 include { SORT_BAM } from './modules/processing.nf'
 include { BASE_RECALIBRATOR } from './modules/gatk.nf'
@@ -175,24 +177,56 @@ workflow {
     // Combine FASTQ files
     fastq_pairs_ch = fastq_r1_ch.combine(fastq_r2_ch)
     
-    // Alignment step
-    BWA_MEM_ALIGN(
-        fastq_pairs_ch,
-        reference_fasta_ch,
-        reference_fasta_index_ch,
-        reference_alt_ch,
-        reference_amb_ch,
-        reference_ann_ch,
-        reference_bwt_ch,
-        reference_pac_ch,
-        reference_sa_ch,
-        params.sample_name,
-        params.read_group_id ?: params.sample_name,
-        params.read_group_platform,
-        params.read_group_pu ?: "unknown",
-        params.read_group_library ?: params.sample_name,
-        params.read_group_center ?: "unknown"
-    )
+    // Alignment step - choose between BWA-MEM and DRAGMAP
+    if (params.use_dragmap) {
+        // Validate DRAGMAP reference files
+        if (!params.dragmap_reference_bin || !params.dragmap_hash_table_cfg_bin || !params.dragmap_hash_table_cmp) {
+            error "DRAGMAP alignment selected but required DRAGMAP reference files are missing: dragmap_reference_bin, dragmap_hash_table_cfg_bin, dragmap_hash_table_cmp"
+        }
+        
+        // DRAGMAP reference files channels
+        dragmap_reference_bin_ch = Channel.fromPath(params.dragmap_reference_bin, checkIfExists: true)
+        dragmap_hash_table_cfg_bin_ch = Channel.fromPath(params.dragmap_hash_table_cfg_bin, checkIfExists: true)
+        dragmap_hash_table_cmp_ch = Channel.fromPath(params.dragmap_hash_table_cmp, checkIfExists: true)
+        
+        DRAGMAP_ALIGN(
+            fastq_pairs_ch,
+            reference_fasta_ch,
+            reference_fasta_index_ch,
+            dragmap_reference_bin_ch,
+            dragmap_hash_table_cfg_bin_ch,
+            dragmap_hash_table_cmp_ch,
+            params.sample_name,
+            params.read_group_id ?: params.sample_name,
+            params.read_group_platform,
+            params.read_group_pu ?: "unknown",
+            params.read_group_library ?: params.sample_name,
+            params.read_group_center ?: "unknown"
+        )
+        
+        aligned_bam_ch = DRAGMAP_ALIGN.out.aligned_bam
+    } else {
+        // BWA-MEM alignment (default)
+        BWA_MEM_ALIGN(
+            fastq_pairs_ch,
+            reference_fasta_ch,
+            reference_fasta_index_ch,
+            reference_alt_ch,
+            reference_amb_ch,
+            reference_ann_ch,
+            reference_bwt_ch,
+            reference_pac_ch,
+            reference_sa_ch,
+            params.sample_name,
+            params.read_group_id ?: params.sample_name,
+            params.read_group_platform,
+            params.read_group_pu ?: "unknown",
+            params.read_group_library ?: params.sample_name,
+            params.read_group_center ?: "unknown"
+        )
+        
+        aligned_bam_ch = BWA_MEM_ALIGN.out.aligned_bam
+    }
     
     // Mark duplicates
     MARK_DUPLICATES(
