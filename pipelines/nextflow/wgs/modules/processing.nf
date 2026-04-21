@@ -43,7 +43,7 @@ process MARK_DUPLICATES {
         METRICS_FILE=${base_name}.duplicate_metrics.txt \\
         VALIDATION_STRINGENCY=SILENT \\
         OPTICAL_DUPLICATE_PIXEL_DISTANCE=2500 \\
-        ASSUME_SORT_ORDER=coordinate \\
+        ASSUME_SORT_ORDER=queryname \\
         CLEAR_DT=false \\
         ADD_PG_TAG_TO_READS=false \\
         CREATE_INDEX=true \\
