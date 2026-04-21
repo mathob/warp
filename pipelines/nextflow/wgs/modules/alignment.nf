@@ -64,15 +64,8 @@ process BWA_MEM_ALIGN {
         ${reference_fasta} \\
         ${fastq_r1} \\
         ${fastq_r2} | \\
-    samtools view -@ ${task.cpus} -Sb - > temp.bam
-    
-    # Sort the BAM file and create index
-    samtools sort -@ ${task.cpus} -o ${sample_name}.aligned.bam temp.bam
-    samtools index ${sample_name}.aligned.bam
-    
-    # Clean up temporary file
-    rm temp.bam
-    
+    samtools view -@ ${task.cpus} -Sb - > ${sample_name}.aligned.bam
+        
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         bwa: \$(echo \$(bwa 2>&1) | sed 's/^.*Version: //; s/Contact:.*\$//')
@@ -83,7 +76,6 @@ process BWA_MEM_ALIGN {
     stub:
     """
     touch ${sample_name}.aligned.bam
-    touch ${sample_name}.aligned.bam.bai
     touch versions.yml
     """
 }
@@ -114,7 +106,6 @@ process DRAGMAP_ALIGN {
     
     output:
     path "${sample_name}.aligned.bam", emit: aligned_bam
-    path "${sample_name}.aligned.bam.bai", emit: aligned_bai
     path "versions.yml", emit: versions
     
     when:
@@ -135,15 +126,8 @@ process DRAGMAP_ALIGN {
         --num-threads ${task.cpus} \\
         ${args} \\
     2> ${sample_name}.dragmap.log \\
-        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.unsorted.bam -
+        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.bam -
 
-    # Sort bam
-    samtools sort --threads  ${task.cpus} -O bam -o ${sample_name}.aligned.bam ${sample_name}.aligned.unsorted.bam \
-    && rm ${sample_name}.aligned.unsorted.bam
-
-    # Index the BAM file
-    samtools index ${sample_name}.aligned.bam
-    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         dragmap: \$(dragen-os --version 2>&1 | grep -o "dragen-os [0-9.]*" | sed 's/dragen-os //')
@@ -154,7 +138,6 @@ process DRAGMAP_ALIGN {
     stub:
     """
     touch ${sample_name}.aligned.bam
-    touch ${sample_name}.aligned.bam.bai
     touch versions.yml
     """
 }
