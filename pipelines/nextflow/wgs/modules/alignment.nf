@@ -134,7 +134,9 @@ process DRAGMAP_ALIGN {
         --RGSM ${sample_name} \\
         --num-threads ${task.cpus} \\
         ${args} \\
-        --output-file-prefix ${sample_name}.aligned \\
+    2> >(tee ${sample_name}.dragmap.log >&2) \\
+        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.bam -
+
     
     # Index the BAM file
     samtools index ${sample_name}.aligned.bam
