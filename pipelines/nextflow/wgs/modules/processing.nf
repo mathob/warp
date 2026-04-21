@@ -20,7 +20,6 @@ process MARK_DUPLICATES {
     
     output:
     path "${base_name}.duplicates_marked.bam", emit: marked_bam
-    path "${base_name}.duplicates_marked.bam.bai", emit: marked_bai
     path "${base_name}.duplicate_metrics.txt", emit: duplicate_metrics
     path "versions.yml", emit: versions
     
@@ -46,11 +45,8 @@ process MARK_DUPLICATES {
         ASSUME_SORT_ORDER=queryname \\
         CLEAR_DT=false \\
         ADD_PG_TAG_TO_READS=false \\
-        CREATE_INDEX=true \\
         ${args}
     
-    mv ${base_name}.duplicates_marked.bai ${base_name}.duplicates_marked.bam.bai
-
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         picard: \$(java -jar /usr/picard/picard.jar MarkDuplicates --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
