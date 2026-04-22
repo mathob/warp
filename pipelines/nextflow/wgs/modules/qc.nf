@@ -240,7 +240,7 @@ process AGGREGATED_BAM_QC {
         ${args}
     
     TOTAL_READS=`cat ${base_name}.alignment_summary_metrics | grep -A1 TOTAL_READS | sed 1d | cut -f2`
-    if [[ $TOTAL_READS < 100000 ]];then
+    if (( $TOTAL_READS < 100000 ));then
         #too few reads for CollectInsertSizeMetrics to work; just provide empty result files
         touch ${base_name}.insert_size_metrics ${base_name}.insert_size_histogram.pdf
     else
