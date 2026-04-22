@@ -52,6 +52,7 @@ process FASTQ2UBAM {
         PLATFORM_UNIT=${read_group_pu} \\
         PLATFORM=${read_group_platform} \\
         SEQUENCING_CENTER=${read_group_center} \\
+        SORT_ORDER=queryname \\
         TMP_DIR=. \\
         ${args}
     
