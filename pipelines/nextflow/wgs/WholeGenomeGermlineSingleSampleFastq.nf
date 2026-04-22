@@ -210,6 +210,7 @@ workflow {
             dragmap_reference_bin_ch,
             dragmap_hash_table_cfg_bin_ch,
             dragmap_hash_table_cmp_ch,
+            reference_fasta_ch,
             params.sample_name,
             params.read_group_id ?: params.sample_name,
             params.read_group_platform,
@@ -377,25 +378,6 @@ workflow {
         run_dragen_mode_variant_calling_,
         use_spanning_event_genotyping_
     )
-
-/*     // Define workflow outputs
-    workflow.unmapped_bam = params.aligner == "dragmap" ? FASTQ2UBAM.out.unmapped_bam : Channel.empty()
-    workflow.output_bam = params.provide_bam_output ? final_bam_ch : Channel.empty()
-    workflow.output_bam_index = params.provide_bam_output ? final_bam_index_ch : Channel.empty()
-    workflow.output_cram = BAM_TO_CRAM.out.cram
-    workflow.output_cram_index = BAM_TO_CRAM.out.cram_index
-    workflow.output_cram_md5 = BAM_TO_CRAM.out.cram_md5
-    workflow.output_vcf = HAPLOTYPE_CALLER.out.gvcf
-    workflow.output_vcf_index = HAPLOTYPE_CALLER.out.gvcf_index
-    workflow.duplicate_metrics = MARK_DUPLICATES.out.duplicate_metrics
-    workflow.wgs_metrics = COLLECT_WGS_METRICS.out.wgs_metrics
-    workflow.raw_wgs_metrics = COLLECT_RAW_WGS_METRICS.out.raw_wgs_metrics
-    workflow.contamination_value = CHECK_CONTAMINATION.out.contamination_value
-    workflow.selfSM = CHECK_CONTAMINATION.out.selfSM
-    workflow.agg_alignment_summary_metrics = AGGREGATED_BAM_QC.out.alignment_summary_metrics
-    workflow.agg_insert_size_metrics = AGGREGATED_BAM_QC.out.insert_size_metrics
-    workflow.agg_gc_bias_metrics = AGGREGATED_BAM_QC.out.gc_bias_metrics
-*/
 
 }
 
