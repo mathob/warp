@@ -146,7 +146,7 @@ include { CHECK_CONTAMINATION } from './modules/qc.nf'
 workflow {
     // Validate conflicting parameters
     if (params.dragen_functional_equivalence_mode && params.dragen_maximum_quality_mode) {
-workflow {
+
     // Validate required parameters
     if (!params.input_fastq_r1) error "Missing required parameter: input_fastq_r1"
     if (!params.input_fastq_r2) error "Missing required parameter: input_fastq_r2"
