@@ -404,8 +404,6 @@ workflow {
  * (Must be outside the workflow block in DSL2)
  */
 
-    // ... (existing workflow code above)
-
 workflow.onComplete {
         println """
         Pipeline completed!
