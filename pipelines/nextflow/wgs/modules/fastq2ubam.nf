@@ -12,8 +12,8 @@ process FASTQ2UBAM {
     
     conda (params.enable_conda ? "bioconda::picard=3.0.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'us.gcr.io/broad-gotc-prod/picard-cloud:2.26.10' :
-        'us.gcr.io/broad-gotc-prod/picard-cloud:2.26.10' }"
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/picard-cloud:2.23.8' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/picard-cloud:2.23.8' }"
     
     input:
     path fastq_r1
@@ -34,10 +34,15 @@ process FASTQ2UBAM {
     
     script:
     def args = task.ext.args ?: ''
-    def memory_mb = task.memory ? task.memory.toMega() - 512 : 3584
+    def avail_mem = 3072
+    if (!task.memory) {
+        log.info '[Picard FastqToSam] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
+    } else {
+        avail_mem = (task.memory.mega*0.8).intValue()
+    }
     
     """
-    java -Xmx${memory_mb}m -jar \$PICARD_JAR FastqToSam \\
+    java -Xmx${avail_mem}M -jar /usr/picard/picard.jar  FastqToSam \\
         FASTQ=${fastq_r1} \\
         FASTQ2=${fastq_r2} \\
         OUTPUT=${sample_name}.unmapped.bam \\
@@ -52,7 +57,7 @@ process FASTQ2UBAM {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        picard: \$(java -jar \$PICARD_JAR FastqToSam --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d' ')
+        picard: \$(java -jar /usr/picard/picard.jar FastqToSam --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d' ')
     END_VERSIONS
     """
     
