@@ -239,13 +239,19 @@ process AGGREGATED_BAM_QC {
         REFERENCE_SEQUENCE=${reference_fasta} \\
         ${args}
     
-    # Collect insert size metrics
-    java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectInsertSizeMetrics \\
-        INPUT=${input_bam} \\
-        OUTPUT=${base_name}.insert_size_metrics \\
-        HISTOGRAM_FILE=${base_name}.insert_size_histogram.pdf \\
-        ${args}
-    
+    TOTAL_READS=`cat ${base_name}.alignment_summary_metrics | grep -A1 TOTAL_READS | sed 1d | cut -f2`
+    if [[ $TOTAL_READS < 100000 ]];then
+        #too few reads for CollectInsertSizeMetrics to work; just provide empty result files
+        touch ${base_name}.insert_size_metrics ${base_name}.insert_size_histogram.pdf
+    else
+        # Collect insert size metrics 
+        java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectInsertSizeMetrics \\
+            INPUT=${input_bam} \\
+            OUTPUT=${base_name}.insert_size_metrics \\
+            HISTOGRAM_FILE=${base_name}.insert_size_histogram.pdf \\
+            ${args}
+    fi
+
     # Collect GC bias metrics
     java -Xmx${memory_gb-1}G -jar /usr/picard/picard.jar CollectGcBiasMetrics \\
         INPUT=${input_bam} \\
