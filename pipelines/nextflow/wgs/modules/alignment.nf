@@ -97,6 +97,7 @@ process DRAGMAP_ALIGN {
     path dragmap_reference_bin
     path dragmap_hash_table_cfg_bin
     path dragmap_hash_table_cmp
+    path reference_fasta
     val sample_name
     val read_group_id
     val read_group_platform
@@ -114,22 +115,62 @@ process DRAGMAP_ALIGN {
     script:
     def args = task.ext.args ?: ''
     def read_group = "@RG\\tID:${read_group_id}\\tSM:${sample_name}\\tPL:${read_group_platform}\\tPU:${read_group_pu}\\tLB:${read_group_library}\\tCN:${read_group_center}"
+    avail_mem = (task.memory.mega*0.8).intValue()
     
+
     """
-    # DRAGMAP alignment
-    dragen-os \\
-        -b ${unmapped_bam} \\
-        --ref-dir . \\
-        --RGID ${read_group_id} \\
-        --RGSM ${sample_name} \\
-        --num-threads ${task.cpus} \\
-        ${args} \\
-    2> ${sample_name}.dragmap.log \\
-        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.bam -
+#    # DRAGMAP alignment
+#    dragen-os \\
+#        -b ${unmapped_bam} \\
+#        --ref-dir . \\
+#        --RGID ${read_group_id} \\
+#        --RGSM ${sample_name} \\
+#        --interleaved 1 \\
+#        --num-threads ${task.cpus} \\
+#        ${args} \\
+#    2> ${sample_name}.dragmap.log \\
+#        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.unmerged.bam -
+    
+    cp /scratch/np30/mxh913/warp-nf/FS28686687.aligned.bam ${sample_name}.aligned.unmerged.bam
+    DRAGMAP_VERSION=`dragen-os --version 2>&1 | grep -o "dragen-os [0-9.]*" | sed 's/dragen-os //'` # probably "UNKNOWN"
+
+    # Merge unmapped and aligned bams
+    java -Dsamjdk.compression_level=2 -Xmx${avail_mem}M -Xms${avail_mem}M -jar /picard/picard.jar \
+      MergeBamAlignment \
+      VALIDATION_STRINGENCY=SILENT \
+      EXPECTED_ORIENTATIONS=FR \
+      ATTRIBUTES_TO_RETAIN=X0 \
+      ATTRIBUTES_TO_REMOVE=RG \
+      ATTRIBUTES_TO_REMOVE=NM \
+      ATTRIBUTES_TO_REMOVE=MD \
+      ALIGNED_BAM=${sample_name}.aligned.unmerged.bam \
+      UNMAPPED_BAM=${unmapped_bam} \
+      OUTPUT=${sample_name}.aligned.bam \
+      REFERENCE_SEQUENCE=${reference_fasta} \
+      PAIRED_RUN=true \
+      SORT_ORDER="unsorted" \
+      IS_BISULFITE_SEQUENCE=false \
+      ALIGNED_READS_ONLY=false \
+      CLIP_ADAPTERS=false \
+      MAX_RECORDS_IN_RAM=2000000 \
+      ADD_MATE_CIGAR=true \
+      MAX_INSERTIONS_OR_DELETIONS=-1 \
+      PRIMARY_ALIGNMENT_STRATEGY=MostDistant \
+      PROGRAM_RECORD_ID="dragen-os" \
+      PROGRAM_GROUP_VERSION="\${DRAGMAP_VERSION}" \
+      PROGRAM_GROUP_COMMAND_LINE="dragen-os -b ${unmapped_bam} -r dragen_reference --interleaved=1" \
+      PROGRAM_GROUP_NAME="dragen-os" \
+      UNMAPPED_READ_STRATEGY=COPY_TO_TAG \
+      ALIGNER_PROPER_PAIR_FLAGS=true \
+      UNMAP_CONTAMINANT_READS=false \
+      ADD_PG_TAG_TO_READS=false
+
+
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        dragmap: \$(dragen-os --version 2>&1 | grep -o "dragen-os [0-9.]*" | sed 's/dragen-os //')
+        dragmap: \$DRAGMAP_VERSION
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
     END_VERSIONS
     """
