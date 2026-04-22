@@ -17,13 +17,13 @@
 
 nextflow.enable.dsl = 2
 
-// Pipeline version
-def pipeline_version = "1.0.0-nf"
 
 /*
  * Pipeline parameters with defaults
  */
 params {
+    // Pipeline version
+    pipeline_version = "1.0.0-nf"
     // Input files
     input_fastq_r1       = null
     input_fastq_r2       = null
@@ -102,11 +102,8 @@ params {
 
 /*
  * Validate required parameters
+ * (Moved into workflow block below)
  */
-if (!params.input_fastq_r1) error "Missing required parameter: input_fastq_r1"
-if (!params.input_fastq_r2) error "Missing required parameter: input_fastq_r2"
-if (!params.sample_name) error "Missing required parameter: sample_name"
-if (!params.reference_fasta) error "Missing required parameter: reference_fasta"
 
 /*
  * Set derived parameters
@@ -148,6 +145,15 @@ include { CHECK_CONTAMINATION } from './modules/qc.nf'
 workflow {
     // Validate conflicting parameters
     if (params.dragen_functional_equivalence_mode && params.dragen_maximum_quality_mode) {
+workflow {
+    // Validate required parameters
+    if (!params.input_fastq_r1) error "Missing required parameter: input_fastq_r1"
+    if (!params.input_fastq_r2) error "Missing required parameter: input_fastq_r2"
+    if (!params.sample_name) error "Missing required parameter: sample_name"
+    if (!params.reference_fasta) error "Missing required parameter: reference_fasta"
+
+    // Validate conflicting parameters
+    if (params.dragen_functional_equivalence_mode && params.dragen_maximum_quality_mode) {
         error "Both dragen_functional_equivalence_mode and dragen_maximum_quality_mode have been set to true, however, they are mutually exclusive."
     }
     
@@ -156,9 +162,6 @@ workflow {
     }
     
     // Create input channels
-    fastq_r1_ch = Channel.fromPath(params.input_fastq_r1, checkIfExists: true)
-    fastq_r2_ch = Channel.fromPath(params.input_fastq_r2, checkIfExists: true)
-    
     // Reference files channels
     reference_fasta_ch = Channel.fromPath(params.reference_fasta, checkIfExists: true)
     reference_fasta_index_ch = Channel.fromPath(params.reference_fasta_index, checkIfExists: true)
