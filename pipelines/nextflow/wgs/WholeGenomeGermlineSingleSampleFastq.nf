@@ -211,6 +211,7 @@ workflow {
             dragmap_hash_table_cfg_bin_ch,
             dragmap_hash_table_cmp_ch,
             reference_fasta_ch,
+            reference_dict_ch,
             params.sample_name,
             params.read_group_id ?: params.sample_name,
             params.read_group_platform,

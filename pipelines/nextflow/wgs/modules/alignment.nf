@@ -98,6 +98,7 @@ process DRAGMAP_ALIGN {
     path dragmap_hash_table_cfg_bin
     path dragmap_hash_table_cmp
     path reference_fasta
+    path reference_dict
     val sample_name
     val read_group_id
     val read_group_platform
