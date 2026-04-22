@@ -378,7 +378,7 @@ workflow {
         use_spanning_event_genotyping_
     )
 
-    // Define workflow outputs
+/*     // Define workflow outputs
     workflow.unmapped_bam = params.aligner == "dragmap" ? FASTQ2UBAM.out.unmapped_bam : Channel.empty()
     workflow.output_bam = params.provide_bam_output ? final_bam_ch : Channel.empty()
     workflow.output_bam_index = params.provide_bam_output ? final_bam_index_ch : Channel.empty()
@@ -395,7 +395,7 @@ workflow {
     workflow.agg_alignment_summary_metrics = AGGREGATED_BAM_QC.out.alignment_summary_metrics
     workflow.agg_insert_size_metrics = AGGREGATED_BAM_QC.out.insert_size_metrics
     workflow.agg_gc_bias_metrics = AGGREGATED_BAM_QC.out.gc_bias_metrics
-
+*/
 
 /*
  * Completion message and error handling
