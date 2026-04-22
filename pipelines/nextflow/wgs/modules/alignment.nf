@@ -93,7 +93,7 @@ process DRAGMAP_ALIGN {
         'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/dragmap:1.2.1' }"
     
     input:
-    tuple path(fastq_r1), path(fastq_r2)
+    path unmapped_bam
     path dragmap_reference_bin
     path dragmap_hash_table_cfg_bin
     path dragmap_hash_table_cmp
@@ -118,8 +118,7 @@ process DRAGMAP_ALIGN {
     """
     # DRAGMAP alignment
     dragen-os \\
-        --fastq-file1 ${fastq_r1} \\
-        --fastq-file2 ${fastq_r2} \\
+        -b ${unmapped_bam} \\
         --ref-dir . \\
         --RGID ${read_group_id} \\
         --RGSM ${sample_name} \\

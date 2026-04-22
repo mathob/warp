@@ -125,6 +125,7 @@ def use_gatk3_haplotype_caller_ = (params.dragen_functional_equivalence_mode || 
 /*
  * Include processes
  */
+include { FASTQ2UBAM } from './modules/fastq2ubam.nf'
 include { BWA_MEM_ALIGN } from './modules/alignment.nf'
 include { DRAGMAP_ALIGN } from './modules/alignment.nf'
 include { MARK_DUPLICATES } from './modules/processing.nf'
@@ -175,7 +176,9 @@ workflow {
     reference_pac_ch = Channel.fromPath(params.reference_pac, checkIfExists: true)
     reference_sa_ch = Channel.fromPath(params.reference_sa, checkIfExists: true)
     
-    // Combine FASTQ files
+    // FASTQ files
+    fastq_r1_ch = Channel.fromPath(params.input_fastq_r1, checkIfExists: true)
+    fastq_r2_ch = Channel.fromPath(params.input_fastq_r2, checkIfExists: true)
     fastq_pairs_ch = fastq_r1_ch.combine(fastq_r2_ch)
     
     // Alignment - conditional based on aligner parameter
@@ -185,13 +188,27 @@ workflow {
             error "DRAGMAP alignment selected but required DRAGMAP reference files are missing: dragmap_reference_bin, dragmap_hash_table_cfg_bin, dragmap_hash_table_cmp"
         }
         
+        // Convert FASTQ to unmapped BAM
+        FASTQ2UBAM(
+        fastq_r1_ch,
+        fastq_r2_ch,
+        params.sample_name,
+        params.read_group_id ?: params.sample_name,
+        params.read_group_platform,
+        params.read_group_pu ?: "unknown",
+        params.read_group_library ?: params.sample_name,
+        params.read_group_center ?: "unknown"
+    )
+        unmapped_bam_ch = FASTQ2UBAM.out.unmapped_bam
+
+
         // DRAGMAP reference files channels
         dragmap_reference_bin_ch = Channel.fromPath(params.dragmap_reference_bin, checkIfExists: true)
         dragmap_hash_table_cfg_bin_ch = Channel.fromPath(params.dragmap_hash_table_cfg_bin, checkIfExists: true)
         dragmap_hash_table_cmp_ch = Channel.fromPath(params.dragmap_hash_table_cmp, checkIfExists: true)
         
         DRAGMAP_ALIGN(
-            fastq_pairs_ch,
+            funmapped_bam_ch,
             dragmap_reference_bin_ch,
             dragmap_hash_table_cfg_bin_ch,
             dragmap_hash_table_cmp_ch,
@@ -365,6 +382,7 @@ workflow {
     
     // Emit outputs
     emit:
+        unmapped_bam = FASTQ2UBAM.out.unmapped_bam
         output_bam = params.provide_bam_output ? final_bam_ch : Channel.empty()
         output_bam_index = params.provide_bam_output ? final_bam_index_ch : Channel.empty()
         output_cram = BAM_TO_CRAM.out.cram
