@@ -397,14 +397,16 @@ workflow {
     workflow.agg_gc_bias_metrics = AGGREGATED_BAM_QC.out.gc_bias_metrics
 */
 
+}
+
 /*
  * Completion message and error handling
- * (Must be inside the workflow block in DSL2)
+ * (Must be outside the workflow block in DSL2)
  */
 
     // ... (existing workflow code above)
 
-    onComplete {
+workflow.onComplete {
         println """
         Pipeline completed!
         
@@ -417,7 +419,6 @@ workflow {
         """
     }
 
-    onError {
+workflow.onError {
         println "Pipeline execution stopped with the following message: ${workflow.errorMessage}"
     }
-}
