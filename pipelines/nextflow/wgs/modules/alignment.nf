@@ -120,21 +120,19 @@ process DRAGMAP_ALIGN {
     
 
     """
-#    # DRAGMAP alignment
-#    dragen-os \\
-#        -b ${unmapped_bam} \\
-#        --ref-dir . \\
-#        --RGID ${read_group_id} \\
-#        --RGSM ${sample_name} \\
-#        --interleaved 1 \\
-#        --num-threads ${task.cpus} \\
-#        ${args} \\
-#    2> ${sample_name}.dragmap.log \\
-#        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.unmerged.bam -
+    # DRAGMAP alignment
+    dragen-os \\
+        -b ${unmapped_bam} \\
+        --ref-dir . \\
+        --RGID ${read_group_id} \\
+        --RGSM ${sample_name} \\
+        --interleaved 1 \\
+        --preserve-map-align-order true \\
+        --num-threads ${task.cpus} \\
+        ${args} \\
+    2> ${sample_name}.dragmap.log \\
+        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.unmerged.bam -
     
-    cp /scratch/np30/mxh913/warp-nf/FS28686687.aligned.bam ${sample_name}.aligned.unmerged.bam
-    DRAGMAP_VERSION=`dragen-os --version 2>&1 | grep -o "dragen-os [0-9.]*" | sed 's/dragen-os //'` # probably "UNKNOWN"
-
     # Merge unmapped and aligned bams
     java -Dsamjdk.compression_level=2 -Xmx${avail_mem}M -Xms${avail_mem}M -jar /picard/picard.jar \
       MergeBamAlignment \
@@ -158,7 +156,7 @@ process DRAGMAP_ALIGN {
       MAX_INSERTIONS_OR_DELETIONS=-1 \
       PRIMARY_ALIGNMENT_STRATEGY=MostDistant \
       PROGRAM_RECORD_ID="dragen-os" \
-      PROGRAM_GROUP_VERSION="\${DRAGMAP_VERSION}" \
+      PROGRAM_GROUP_VERSION="UNKNOWN" \
       PROGRAM_GROUP_COMMAND_LINE="dragen-os -b ${unmapped_bam} -r dragen_reference --interleaved=1" \
       PROGRAM_GROUP_NAME="dragen-os" \
       UNMAPPED_READ_STRATEGY=COPY_TO_TAG \
@@ -171,7 +169,7 @@ process DRAGMAP_ALIGN {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        dragmap: \$DRAGMAP_VERSION
+        dragmap: UNKNOWN
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
     END_VERSIONS
     """
