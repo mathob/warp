@@ -380,26 +380,21 @@ workflow {
         use_spanning_event_genotyping_
     )
 
-}
-
-/*
- * Completion message and error handling
- * (Must be outside the workflow block in DSL2)
- */
-
-workflow.onComplete {
+onComplete {
         println """
         Pipeline completed!
         
         Results are located in: ${params.outdir}
         
         Main outputs:
-        - GVCF: ${params.outdir}/${params.final_gvcf_base_name ?: params.base_file_name ?: params.sample_name}.g.vcf.gz
-        - CRAM: ${params.outdir}/${params.base_file_name ?: params.sample_name}.cram
-        - Metrics: Various QC metrics files
+        - GVCF: ${params.outdir}/variants/${params.final_gvcf_base_name ?: params.base_file_name ?: params.sample_name}.g.vcf.gz
+        - CRAM: ${params.outdir}/cram/${params.base_file_name ?: params.sample_name}.cram
+        - Metrics: Various QC metrics files in ${params.outdir}/qc
         """
     }
 
-workflow.onError {
+onError {
         println "Pipeline execution stopped with the following message: ${workflow.errorMessage}"
     }
+
+}
