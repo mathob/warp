@@ -380,7 +380,9 @@ workflow {
         use_spanning_event_genotyping_
     )
 
-onComplete {
+}
+
+workflow.onComplete {
         println """
         Pipeline completed!
         
@@ -393,8 +395,6 @@ onComplete {
         """
     }
 
-onError {
+workflow.onError {
         println "Pipeline execution stopped with the following message: ${workflow.errorMessage}"
     }
-
-}
