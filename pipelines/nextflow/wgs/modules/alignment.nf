@@ -171,6 +171,7 @@ process DRAGMAP_ALIGN {
     "${task.process}":
         dragmap: UNKNOWN
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+        picard: \$(java -jar /usr/picard/picard.jar MergeBamAlignment --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
     END_VERSIONS
     """
     
