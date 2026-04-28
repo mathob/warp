@@ -265,7 +265,8 @@ workflow {
     // Dragen dragstr model calibration (if enabled)
     if (run_dragen_mode_variant_calling_) {
             CALIBRATE_DRAGSTR_MODEL(
-            aligned_bam_ch,
+            final_bam_ch,
+            final_bam_index_ch,
             reference_fasta_ch,
             reference_fasta_index_ch,
             reference_dict_ch,
@@ -313,8 +314,7 @@ workflow {
     wgs_interval_ch = Channel.fromPath(params.wgs_coverage_interval_list, checkIfExists: true)
 
     COLLECT_WGS_METRICS(
-        SORT_BAM.out.sorted_bam,
-        SORT_BAM.out.sorted_bai,
+        final_bam_ch,
         final_bam_index_ch,
         reference_fasta_ch,
         reference_fasta_index_ch,
