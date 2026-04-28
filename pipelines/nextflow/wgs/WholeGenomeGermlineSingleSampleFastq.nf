@@ -100,7 +100,7 @@ params.max_time = "240.h"
 /*
  * Include processes
  */
-include { CALIBRATE_DRAGSTR_MODEL } from '../modules/alignment.nf'
+include { CALIBRATE_DRAGSTR_MODEL } from './modules/alignment.nf'
 include { FASTQ2UBAM } from './modules/fastq2ubam.nf'
 include { BWA_MEM_ALIGN } from './modules/alignment.nf'
 include { DRAGMAP_ALIGN } from './modules/alignment.nf'
