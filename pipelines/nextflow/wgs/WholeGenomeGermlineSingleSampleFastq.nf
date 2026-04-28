@@ -394,15 +394,18 @@ workflow {
         final_gvcf_base_name,
         use_gatk3_haplotype_caller_,
         run_dragen_mode_variant_calling_,
-        use_spanning_event_genotyping_
+        use_spanning_event_genotyping_,
+        CALIBRATE_DRAGSTR_MODEL.out.dragstr_model
     )
 
 }
 
 workflow.onComplete {
+
+    println "Pipeline completed: ${workflow.success ? 'OK' : 'failed'}"
+    if (workflow.success) {
+
         println """
-        Pipeline completed!
-        
         Results are located in: ${params.outdir}
         
         Main outputs:
@@ -411,6 +414,7 @@ workflow.onComplete {
         - Metrics: Various QC metrics files in ${params.outdir}/qc
         """
     }
+}
 
 workflow.onError {
         println "Pipeline execution stopped with the following message: ${workflow.errorMessage}"

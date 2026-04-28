@@ -140,6 +140,7 @@ process HAPLOTYPE_CALLER {
     val use_gatk3_haplotype_caller
     val run_dragen_mode_variant_calling
     val use_spanning_event_genotyping
+    path dragstr_model
     
     output:
     path "${base_name}.g.vcf.gz", emit: gvcf
@@ -151,20 +152,28 @@ process HAPLOTYPE_CALLER {
     
     script:
     def args = task.ext.args ?: ''
+    def memory_gb = task.memory.toGiga()
     def intervals_arg = calling_interval_list ? "--intervals ${calling_interval_list}" : ""
     def dbsnp_arg = dbsnp_vcf ? "--dbsnp ${dbsnp_vcf}" : ""
     def contamination_arg = contamination_value ? "--contamination-fraction-to-filter ${contamination_value}" : ""
-    def memory_gb = task.memory.toGiga()
+    def dragen_mode_arg = run_dragen_mode_variant_calling ? "--dragen-mode" : ""
+    def dragstr_model_arg = dragstr_model ? "--dragstr-params-path ${dragstr_model}" : ""
+    def spanning_event_genotyping_arg = use_spanning_event_genotyping ? "" : "--disable-spanning-event-genotyping"
     
     """
     gatk --java-options "-Xmx${memory_gb-1}G" HaplotypeCaller \\
-        --input ${input_bam} \\
         --reference ${reference_fasta} \\
-        --output ${base_name}.g.vcf.gz \\
-        --emit-ref-confidence GVCF \\
+        --input ${input_bam} \\
         ${intervals_arg} \\
-        ${dbsnp_arg} \\
+        --output ${base_name}.g.vcf.gz \\
         ${contamination_arg} \\
+        -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation \\
+        ${dragen_mode_arg} \\
+        ${spanning_event_genotyping_arg} \\
+        -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 60 -GQB 70 -GQB 80 -GQB 90 \
+        ${dragstr_model_arg} \\
+        --emit-ref-confidence GVCF \\
+        ${dbsnp_arg} \\
         ${args}
     
     cat <<-END_VERSIONS > versions.yml
