@@ -181,3 +181,54 @@ process DRAGMAP_ALIGN {
     touch versions.yml
     """
 }
+
+
+/*
+ * Calibrate DragSTR model
+ * Equivalent to CalibrateDragstrModel in tasks/broad/DragenTasks.wdl
+ */
+process CALIBRATE_DRAGSTR_MODEL {
+
+    tag "${sample_name}"
+
+    label 'gatk'
+
+    conda (params.enable_conda ? "bioconda::gatk4=4.4.0.0" : null)
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.1.8.0' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.1.8.0' }"
+    
+    input:
+    path bam
+    path bam_index
+    path reference_fasta
+    path reference_fasta_index
+    path reference_dict
+    path str_table_file
+    val  sample_name
+
+    output:
+    path "${sample_name}.dragstr_model.txt", emit: dragstr_model
+
+    script:
+    def mem_gb = task.memory ? (task.memory.toGiga() - 1) : 3
+    """
+    gatk --java-options "-Xmx${mem_gb}g" \
+        CalibrateDragstrModel \
+        -R ${reference_fasta} \
+        -I ${bam} \
+        -str ${str_table_file} \
+        -O ${sample_name}.dragstr_model.txt \
+        --parallel
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        gatk4: \$(echo \$(gatk --version 2>&1) | sed 's/^.*(GATK) v//; s/ .*\$//')
+    END_VERSIONS
+    """
+    
+    stub:
+    """
+    touch ${sample_name}.dragstr_model.txt
+    """
+}

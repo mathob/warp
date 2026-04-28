@@ -100,6 +100,7 @@ params.max_time = "240.h"
 /*
  * Include processes
  */
+include { CALIBRATE_DRAGSTR_MODEL } from '../modules/alignment.nf'
 include { FASTQ2UBAM } from './modules/fastq2ubam.nf'
 include { BWA_MEM_ALIGN } from './modules/alignment.nf'
 include { DRAGMAP_ALIGN } from './modules/alignment.nf'
@@ -257,6 +258,19 @@ workflow {
         MARK_DUPLICATES.out.marked_bam,
         base_file_name
     )
+
+    // Dragen dragstr model calibration (if enabled)
+    if (run_dragen_mode_variant_calling_) {
+            CALIBRATE_DRAGSTR_MODEL(
+            bam_ch,
+            bam_index_ch,
+            reference_fasta_ch,
+            reference_fasta_index_ch,
+            reference_dict_ch,
+            str_table_ch,
+            sample_name
+        )
+    }
 
     // Base Quality Score Recalibration (if enabled)
     if (perform_bqsr_) {
