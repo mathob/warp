@@ -123,8 +123,8 @@ process HAPLOTYPE_CALLER {
     
     conda (params.enable_conda ? "bioconda::gatk4=4.4.0.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.1.8.0' :
-        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.1.8.0' }"
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.2.2.0' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.2.2.0' }"
     
     input:
     path input_bam
