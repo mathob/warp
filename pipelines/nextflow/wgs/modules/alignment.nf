@@ -200,7 +200,6 @@ process CALIBRATE_DRAGSTR_MODEL {
     
     input:
     path bam
-    path bam_index
     path reference_fasta
     path reference_fasta_index
     path reference_dict

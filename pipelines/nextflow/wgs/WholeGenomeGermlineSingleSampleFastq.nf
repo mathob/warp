@@ -72,6 +72,7 @@ params.fingerprint_genotypes_index = null
 params.dragmap_reference_bin = null
 params.dragmap_hash_table_cfg_bin = null
 params.dragmap_hash_table_cmp = null
+params.str_table_file = null
 
 // Pipeline options
 params.provide_bam_output = false
@@ -163,6 +164,8 @@ workflow {
     reference_fasta_ch = Channel.fromPath(params.reference_fasta, checkIfExists: true)
     reference_fasta_index_ch = Channel.fromPath(params.reference_fasta_index, checkIfExists: true)
     reference_dict_ch = Channel.fromPath(params.reference_dict, checkIfExists: true)
+
+    str_table_ch = Channel.fromPath(params.str_table_file, checkIfExists: true)
 
     // BWA index files
     reference_alt_ch = Channel.fromPath(params.reference_alt, checkIfExists: true)
@@ -262,8 +265,7 @@ workflow {
     // Dragen dragstr model calibration (if enabled)
     if (run_dragen_mode_variant_calling_) {
             CALIBRATE_DRAGSTR_MODEL(
-            bam_ch,
-            bam_index_ch,
+            aligned_bam_ch,
             reference_fasta_ch,
             reference_fasta_index_ch,
             reference_dict_ch,
