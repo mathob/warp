@@ -265,8 +265,8 @@ workflow {
     // Dragen dragstr model calibration (if enabled)
     if (run_dragen_mode_variant_calling_) {
             CALIBRATE_DRAGSTR_MODEL(
-            final_bam_ch,
-            final_bam_index_ch,
+            SORT_BAM.out.sorted_bam,
+            SORT_BAM.out.sorted_bai,
             reference_fasta_ch,
             reference_fasta_index_ch,
             reference_dict_ch,
