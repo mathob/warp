@@ -313,7 +313,8 @@ workflow {
     wgs_interval_ch = Channel.fromPath(params.wgs_coverage_interval_list, checkIfExists: true)
 
     COLLECT_WGS_METRICS(
-        final_bam_ch,
+        SORT_BAM.out.sorted_bam,
+        SORT_BAM.out.sorted_bai,
         final_bam_index_ch,
         reference_fasta_ch,
         reference_fasta_index_ch,
