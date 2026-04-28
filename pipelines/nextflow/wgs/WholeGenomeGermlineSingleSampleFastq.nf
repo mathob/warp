@@ -270,7 +270,7 @@ workflow {
             reference_fasta_index_ch,
             reference_dict_ch,
             str_table_ch,
-            sample_name
+            params.sample_name
         )
     }
 
