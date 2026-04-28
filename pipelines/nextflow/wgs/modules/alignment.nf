@@ -191,7 +191,7 @@ process CALIBRATE_DRAGSTR_MODEL {
 
     tag "${sample_name}"
 
-    label 'gatk'
+    label 'process_low'
 
     conda (params.enable_conda ? "bioconda::gatk4=4.4.0.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
