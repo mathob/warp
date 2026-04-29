@@ -47,7 +47,7 @@ process FASTQ2UBAM {
     java -Xmx${avail_mem}M -jar /usr/picard/picard.jar  FastqToSam \\
         FASTQ=${fastq_r1} \\
         FASTQ2=${fastq_r2} \\
-        OUTPUT=${sample_name}.unmapped.bam \\
+        OUTPUT=${output_bam} \\
         READ_GROUP_NAME=${read_group_id} \\
         SAMPLE_NAME=${sample_name} \\
         LIBRARY_NAME=${read_group_library} \\

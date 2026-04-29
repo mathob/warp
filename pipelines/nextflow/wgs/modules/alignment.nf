@@ -145,7 +145,7 @@ process DRAGMAP_ALIGN {
       ATTRIBUTES_TO_REMOVE=MD \
       ALIGNED_BAM=${sample_name}.aligned.unmerged.bam \
       UNMAPPED_BAM=${unmapped_bam} \
-      OUTPUT=${sample_name}.aligned.bam \
+      OUTPUT=${output_bam} \
       REFERENCE_SEQUENCE=${reference_fasta} \
       PAIRED_RUN=true \
       SORT_ORDER="unsorted" \
