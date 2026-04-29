@@ -179,6 +179,45 @@ process BAM_TO_CRAM {
 }
 
 /*
+ * Split FASTQ files into chunks for parallel alignment
+ */
+process SPLIT_FASTQ {
+
+    tag "${sample_name}"
+
+    input:
+    path fastq_r1
+    path fastq_r2
+    val  num_chunks
+
+    output:
+    tuple val(chunk_id), path("chunk_${chunk_id}_R1.fastq.gz"), path("chunk_${chunk_id}_R2.fastq.gz"), emit: fastq_chunks
+
+    script:
+    """
+    # Count total reads
+    total_reads=\$(zcat ${fastq_r1} | wc -l)
+    total_reads=\$((total_reads / 4))
+    reads_per_chunk=\$(( (total_reads + ${num_chunks} - 1) / ${num_chunks} ))
+    lines_per_chunk=\$((reads_per_chunk * 4))
+
+    zcat ${fastq_r1} | split -l \$lines_per_chunk --numeric-suffixes=1 --suffix-length=4 - chunk_r1_
+    zcat ${fastq_r2} | split -l \$lines_per_chunk --numeric-suffixes=1 --suffix-length=4 - chunk_r2_
+
+    for f in chunk_r1_*; do
+        idx=\${f##*_}
+        gzip -c \$f > chunk_\${idx}_R1.fastq.gz
+        gzip -c chunk_r2_\${idx} > chunk_\${idx}_R2.fastq.gz
+    done
+    """
+
+    stub:
+    """
+    touch chunk_0001_R1.fastq.gz chunk_0001_R2.fastq.gz
+    """
+
+
+}/*
  * Gather BAM files (used when scattering is implemented)
  */
 process GATHER_BAM_FILES {

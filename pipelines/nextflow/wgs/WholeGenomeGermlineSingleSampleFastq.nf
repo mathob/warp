@@ -89,6 +89,7 @@ params.use_dragen_hard_filtering = false
 // Scatter settings
 params.haplotype_scatter_count = 50
 params.break_bands_at_multiples_of = 1000000
+params.fastq_scatter_count = 10
 
 // Output directory
 params.outdir = "results"
@@ -110,6 +111,7 @@ include { SORT_BAM } from './modules/processing.nf'
 include { BASE_RECALIBRATOR } from './modules/gatk.nf'
 include { APPLY_BQSR } from './modules/gatk.nf'
 include { GATHER_BAM_FILES } from './modules/processing.nf'
+include { SPLIT_FASTQ } from './modules/processing.nf'
 include { COLLECT_WGS_METRICS } from './modules/qc.nf'
 include { COLLECT_RAW_WGS_METRICS } from './modules/qc.nf'
 include { AGGREGATED_BAM_QC } from './modules/qc.nf'
@@ -192,10 +194,22 @@ workflow {
             error "DRAGMAP alignment selected but required DRAGMAP reference files are missing: dragmap_reference_bin, dragmap_hash_table_cfg_bin, dragmap_hash_table_cmp"
         }
 
-        // Convert FASTQ to unmapped BAM
-        FASTQ2UBAM(
+        // DRAGMAP reference files channels
+        dragmap_reference_bin_ch        = Channel.fromPath(params.dragmap_reference_bin, checkIfExists: true)
+        dragmap_hash_table_cfg_bin_ch   = Channel.fromPath(params.dragmap_hash_table_cfg_bin, checkIfExists: true)
+        dragmap_hash_table_cmp_ch       = Channel.fromPath(params.dragmap_hash_table_cmp, checkIfExists: true)
+
+        // Split FASTQs into chunks
+        SPLIT_FASTQ(
             fastq_r1_ch,
             fastq_r2_ch,
+            params.fastq_scatter_count
+        )
+
+        // Convert each FASTQ chunk to unmapped BAM in parallel
+        FASTQ2UBAM(
+            SPLIT_FASTQ.out.fastq_chunks.map { chunk_id, r1, r2 -> r1 },
+            SPLIT_FASTQ.out.fastq_chunks.map { chunk_id, r1, r2 -> r2 },
             params.sample_name,
             params.read_group_id ?: params.sample_name,
             params.read_group_platform,
@@ -203,15 +217,10 @@ workflow {
             params.read_group_library ?: params.sample_name,
             params.read_group_center ?: "unknown"
         )
-        unmapped_bam_ch = FASTQ2UBAM.out.unmapped_bam
 
-        // DRAGMAP reference files channels
-        dragmap_reference_bin_ch = Channel.fromPath(params.dragmap_reference_bin, checkIfExists: true)
-        dragmap_hash_table_cfg_bin_ch = Channel.fromPath(params.dragmap_hash_table_cfg_bin, checkIfExists: true)
-        dragmap_hash_table_cmp_ch = Channel.fromPath(params.dragmap_hash_table_cmp, checkIfExists: true)
-
+        // Align each uBAM chunk in parallel
         DRAGMAP_ALIGN(
-            unmapped_bam_ch,
+            FASTQ2UBAM.out.unmapped_bam,
             dragmap_reference_bin_ch,
             dragmap_hash_table_cfg_bin_ch,
             dragmap_hash_table_cmp_ch,
@@ -225,7 +234,14 @@ workflow {
             params.read_group_center ?: "unknown"
         )
 
-        aligned_bam_ch = DRAGMAP_ALIGN.out.aligned_bam
+        // Gather all aligned chunks into a single BAM
+        GATHER_BAM_FILES(
+            DRAGMAP_ALIGN.out.aligned_bam.collect(),
+            base_file_name
+        )
+
+        aligned_bam_ch = GATHER_BAM_FILES.out.gathered_bam
+
     } else if (params.aligner == "bwa-mem") {
         // BWA-MEM alignment
         BWA_MEM_ALIGN(
