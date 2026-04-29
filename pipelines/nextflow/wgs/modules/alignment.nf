@@ -117,7 +117,7 @@ process DRAGMAP_ALIGN {
     def args = task.ext.args ?: ''
     def chunk_id   = (unmapped_bam.name =~ /chunk_(\d+).unmapped/)[0]?[1] ?: "000"
     def aligned_unmerged_bam = "${sample_name}.chunk_${chunk_id}.aligned.unmerged.bam"
-    def output_bam = "${sample_name}.chunk_${chunk_id}.bam"
+    def output_bam = "${sample_name}.chunk_${chunk_id}.aligned.bam"
     //def read_group = "@RG\\tID:${read_group_id}\\tSM:${sample_name}\\tPL:${read_group_platform}\\tPU:${read_group_pu}\\tLB:${read_group_library}\\tCN:${read_group_center}"
     avail_mem = (task.memory.mega*0.8).intValue()
 
