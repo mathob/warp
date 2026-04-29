@@ -225,11 +225,11 @@ workflow {
         // Align each uBAM chunk in parallel
         DRAGMAP_ALIGN(
             FASTQ2UBAM.out.unmapped_bam,
-            dragmap_reference_bin_ch,
-            dragmap_hash_table_cfg_bin_ch,
-            dragmap_hash_table_cmp_ch,
-            reference_fasta_ch,
-            reference_dict_ch,
+            dragmap_reference_bin_ch.first(),        // broadcast to all chunks
+            dragmap_hash_table_cfg_bin_ch.first(),   // broadcast to all chunks
+            dragmap_hash_table_cmp_ch.first(),       // broadcast to all chunks
+            reference_fasta_ch.first(),              // broadcast to all chunks
+            reference_dict_ch.first(),               // broadcast to all chunks
             params.sample_name,
             params.read_group_id ?: params.sample_name,
             params.read_group_platform,
