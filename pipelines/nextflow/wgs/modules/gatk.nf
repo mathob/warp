@@ -250,3 +250,55 @@ process VARIANT_FILTRATION {
     touch versions.yml
     """
 }
+
+process DRAGEN_HARD_VARIANT_FILTRATION {
+    tag "${base_name}"
+    label 'process_medium'
+    publishDir "${params.outdir}/variants", mode: 'copy'
+    
+    conda (params.enable_conda ? "bioconda::gatk4=4.4.0.0" : null)
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.1.8.0' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.1.8.0' }"
+    
+    input:
+    path input_vcf
+    path input_vcf_index
+    path reference_fasta
+    val base_name
+    
+    output:
+    path "${base_name}.hard-filtered.g.vcf.gz", emit: hard_filtered_vcf
+    path "${base_name}.hard-filtered.g.vcf.gz.tbi", emit: hard_filtered_vcf_index
+    path "versions.yml", emit: versions
+    
+    when:
+    task.ext.when == null || task.ext.when
+    
+    script:
+    def args = task.ext.args ?: ''
+    def memory_gb = task.memory.toGiga()
+    
+    """
+    gatk --java-options "-Xmx${memory_gb-1}G" VariantFiltration \\
+        --variant ${input_vcf} \\
+        --reference ${reference_fasta} \\
+        --output ${base_name}.hard-filtered.g.vcf.gz \\
+        --filter-expression "QUAL < 10.4139" \\
+        --filter-name "DRAGENHardQUAL" \\
+        ${args}
+    
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        gatk4: \$(echo \$(gatk --version 2>&1) | sed 's/^.*(GATK) v//; s/ .*\$//')
+    END_VERSIONS
+    """
+    
+    stub:
+    """
+    touch ${base_name}.hard-filtered.g.vcf.gz
+    touch ${base_name}.hard-filtered.g.vcf.gz.tbi
+    touch versions.yml
+    """
+}
+

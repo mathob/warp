@@ -115,6 +115,7 @@ include { COLLECT_RAW_WGS_METRICS } from './modules/qc.nf'
 include { AGGREGATED_BAM_QC } from './modules/qc.nf'
 include { BAM_TO_CRAM } from './modules/processing.nf'
 include { HAPLOTYPE_CALLER } from './modules/gatk.nf'
+include { DRAGEN_HARD_VARIANT_FILTRATION } from './modules/gatk.nf'
 include { CHECK_CONTAMINATION } from './modules/qc.nf'
 
 /*
@@ -397,6 +398,16 @@ workflow {
         use_spanning_event_genotyping_,
         CALIBRATE_DRAGSTR_MODEL.out.dragstr_model
     )
+
+    if (run_dragen_mode_variant_calling_) {
+
+        DRAGEN_HARD_VARIANT_FILTRATION(
+            HAPLOTYPE_CALLER.out.gvcf,
+            HAPLOTYPE_CALLER.out.gvcf_index,
+            reference_fasta_ch,
+            base_file_name
+        )
+    }
 
 }
 
