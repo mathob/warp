@@ -266,6 +266,7 @@ process DRAGEN_HARD_VARIANT_FILTRATION {
     path input_vcf_index
     path reference_fasta
     path reference_fasta_index
+    path reference_fasta_dict
     val base_name
     
     output:
