@@ -405,6 +405,7 @@ workflow {
             HAPLOTYPE_CALLER.out.gvcf,
             HAPLOTYPE_CALLER.out.gvcf_index,
             reference_fasta_ch,
+            reference_fasta_index_ch,
             base_file_name
         )
     }
