@@ -240,7 +240,7 @@ workflow {
 
         // Mark duplicates
         MARK_DUPLICATES(
-            DRAGMAP.out.aligned_bam,
+            DRAGMAP_ALIGN.out.aligned_bam,
             base_file_name
         )
 
