@@ -115,8 +115,9 @@ process DRAGMAP_ALIGN {
     
     script:
     def args = task.ext.args ?: ''
-    def chunk_id   = (fastq_r1.name =~ /chunk_(\d+)_R1/)[0]?[1] ?: "000"
-    def output_bam = "${sample_name}.chunk_${chunk_id}.unmapped.bam"
+    def chunk_id   = (unmapped_bam.name =~ /chunk_(\d+).unmapped/)[0]?[1] ?: "000"
+    def aligned_unmerged_bam = "${sample_name}.chunk_${chunk_id}.aligned.unmerged.bam"
+    def output_bam = "${sample_name}.chunk_${chunk_id}.bam"
     //def read_group = "@RG\\tID:${read_group_id}\\tSM:${sample_name}\\tPL:${read_group_platform}\\tPU:${read_group_pu}\\tLB:${read_group_library}\\tCN:${read_group_center}"
     avail_mem = (task.memory.mega*0.8).intValue()
 
@@ -132,7 +133,7 @@ process DRAGMAP_ALIGN {
         --num-threads ${task.cpus} \\
         ${args} \\
     2> ${sample_name}.dragmap.log \\
-        | samtools view --threads ${task.cpus} -o ${sample_name}.aligned.unmerged.bam -
+        | samtools view --threads ${task.cpus} -o ${aligned_unmerged_bam} -
     
     # Merge unmapped and aligned bams
     java -Dsamjdk.compression_level=2 -Xmx${avail_mem}M -Xms${avail_mem}M -jar /picard/picard.jar \
@@ -143,7 +144,7 @@ process DRAGMAP_ALIGN {
       ATTRIBUTES_TO_REMOVE=RG \
       ATTRIBUTES_TO_REMOVE=NM \
       ATTRIBUTES_TO_REMOVE=MD \
-      ALIGNED_BAM=${sample_name}.aligned.unmerged.bam \
+      ALIGNED_BAM=${aligned_unmerged_bam} \
       UNMAPPED_BAM=${unmapped_bam} \
       OUTPUT=${output_bam} \
       REFERENCE_SEQUENCE=${reference_fasta} \
