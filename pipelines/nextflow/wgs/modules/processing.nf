@@ -183,8 +183,6 @@ process BAM_TO_CRAM {
  */
 process SPLIT_FASTQ {
 
-    tag "${sample_name}"
-
     input:
     path fastq_r1
     path fastq_r2
