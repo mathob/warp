@@ -238,12 +238,17 @@ workflow {
             params.read_group_center ?: "unknown"
         )
 
-        // Gather all aligned chunks into a single BAM
-        GATHER_BAM_FILES(
-            DRAGMAP_ALIGN.out.aligned_bam.collect(),
+        // Mark duplicates
+        MARK_DUPLICATES(
+            DRAGMAP.out.aligned_bam,
             base_file_name
         )
 
+        // Gather all aligned chunks into a single BAM
+        GATHER_BAM_FILES(
+            MARK_DUPLICATES.out.marked_bam.collect(),
+            base_file_name
+        )
         aligned_bam_ch = GATHER_BAM_FILES.out.gathered_bam
 
     } else if (params.aligner == "bwa-mem") {
@@ -271,15 +276,10 @@ workflow {
         error "Invalid aligner specified: '${params.aligner}'. Valid options are 'dragmap' or 'bwa-mem'"
     }
 
-    // Mark duplicates
-    MARK_DUPLICATES(
-        aligned_bam_ch,
-        base_file_name
-    )
 
     // Sort BAM
     SORT_BAM(
-        MARK_DUPLICATES.out.marked_bam,
+        aligned_bam_ch,
         base_file_name
     )
 
