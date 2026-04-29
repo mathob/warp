@@ -189,11 +189,11 @@ process SPLIT_FASTQ {
     val  num_chunks
 
     output:
-    tuple val(chunk_id), path("chunk_${chunk_id}_R1.fastq.gz"), path("chunk_${chunk_id}_R2.fastq.gz"), emit: fastq_chunks
+    path "chunk_*_R1.fastq.gz", emit: fastq_r1_chunks
+    path "chunk_*_R2.fastq.gz", emit: fastq_r2_chunks
 
     script:
     """
-    # Count total reads
     total_reads=\$(zcat ${fastq_r1} | wc -l)
     total_reads=\$((total_reads / 4))
     reads_per_chunk=\$(( (total_reads + ${num_chunks} - 1) / ${num_chunks} ))
@@ -212,10 +212,12 @@ process SPLIT_FASTQ {
     stub:
     """
     touch chunk_0001_R1.fastq.gz chunk_0001_R2.fastq.gz
+    touch chunk_0002_R1.fastq.gz chunk_0002_R2.fastq.gz
     """
+}
 
 
-}/*
+/*
  * Gather BAM files (used when scattering is implemented)
  */
 process GATHER_BAM_FILES {

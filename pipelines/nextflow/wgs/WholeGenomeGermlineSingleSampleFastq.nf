@@ -206,10 +206,14 @@ workflow {
             params.fastq_scatter_count
         )
 
-        // Convert each FASTQ chunk to unmapped BAM in parallel
+        // Sort ensures chunk_0001_R1 pairs with chunk_0001_R2
+        fastq_chunks_ch = SPLIT_FASTQ.out.fastq_r1_chunks
+            .flatten()
+            .merge( SPLIT_FASTQ.out.fastq_r2_chunks.flatten() )
+
         FASTQ2UBAM(
-            SPLIT_FASTQ.out.fastq_chunks.map { chunk_id, r1, r2 -> r1 },
-            SPLIT_FASTQ.out.fastq_chunks.map { chunk_id, r1, r2 -> r2 },
+            fastq_chunks_ch.map { r1, r2 -> r1 },
+            fastq_chunks_ch.map { r1, r2 -> r2 },
             params.sample_name,
             params.read_group_id ?: params.sample_name,
             params.read_group_platform,
