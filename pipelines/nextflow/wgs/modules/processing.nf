@@ -256,7 +256,7 @@ process GATHER_BAM_FILES {
     java -Xmx${avail_mem}M -jar /usr/picard/picard.jar GatherBamFiles \\
         ${input_list} \\
         OUTPUT=${base_name}.gathered.bam \\
-        CREATE_INDEX=true \\
+        CREATE_INDEX=false \\
         VALIDATION_STRINGENCY=SILENT \\
         ${args}
     
