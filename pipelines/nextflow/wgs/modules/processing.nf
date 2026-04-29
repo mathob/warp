@@ -235,7 +235,6 @@ process GATHER_BAM_FILES {
     
     output:
     path "${base_name}.gathered.bam", emit: gathered_bam
-    path "${base_name}.gathered.bam.bai", emit: gathered_bai
     path "versions.yml", emit: versions
     
     when:
