@@ -107,7 +107,7 @@ process DRAGMAP_ALIGN {
     val read_group_center
     
     output:
-    path "${sample_name}.aligned.bam", emit: aligned_bam
+    path "${sample_name}.chunk_*.aligned.bam", emit: aligned_bam
     path "versions.yml", emit: versions
     
     when:
@@ -115,9 +115,10 @@ process DRAGMAP_ALIGN {
     
     script:
     def args = task.ext.args ?: ''
-    def read_group = "@RG\\tID:${read_group_id}\\tSM:${sample_name}\\tPL:${read_group_platform}\\tPU:${read_group_pu}\\tLB:${read_group_library}\\tCN:${read_group_center}"
+    def chunk_id   = (fastq_r1.name =~ /chunk_(\d+)_R1/)[0]?[1] ?: "000"
+    def output_bam = "${sample_name}.chunk_${chunk_id}.unmapped.bam"
+    //def read_group = "@RG\\tID:${read_group_id}\\tSM:${sample_name}\\tPL:${read_group_platform}\\tPU:${read_group_pu}\\tLB:${read_group_library}\\tCN:${read_group_center}"
     avail_mem = (task.memory.mega*0.8).intValue()
-    
 
     """
     # DRAGMAP alignment

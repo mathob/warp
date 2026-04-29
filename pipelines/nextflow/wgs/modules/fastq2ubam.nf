@@ -26,7 +26,7 @@ process FASTQ2UBAM {
     val read_group_center
     
     output:
-    path "${sample_name}.unmapped.bam", emit: unmapped_bam
+    path "${sample_name}.chunk_*.unmapped.bam", emit: unmapped_bam
     path "versions.yml", emit: versions
     
     when:
@@ -34,6 +34,8 @@ process FASTQ2UBAM {
     
     script:
     def args = task.ext.args ?: ''
+    def chunk_id = (fastq_r1.name =~ /chunk_(\d+)_R1/)[0]?[1] ?: "000"
+    def output_bam = "${sample_name}.chunk_${chunk_id}.unmapped.bam"
     def avail_mem = 3072
     if (!task.memory) {
         log.info '[Picard FastqToSam] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
