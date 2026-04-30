@@ -308,7 +308,7 @@ process DRAGEN_HARD_VARIANT_FILTRATION {
 process MERGE_VCFS {
 
     tag "${base_name}"
-    label 'gatk'
+    label 'process_medium'
 
     publishDir "${params.outdir}/variants", mode: 'copy'
 
