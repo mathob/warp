@@ -346,3 +346,47 @@ process MERGE_VCFS {
     touch versions.yml
     """
 }
+
+
+/*
+ * Split an interval list file into N scattered interval list files
+ */
+process SCATTER_INTERVAL_LIST {
+
+    tag "scatter_${num_scatters}"
+    label 'process_low'
+
+    input:
+    path interval_list
+    val  num_scatters
+
+    output:
+    path "scatter_*.interval_list", emit: scattered_intervals
+
+    script:
+    """
+    # Count non-header intervals
+    total=\$(grep -v '^@' ${interval_list} | wc -l)
+    n=\$(( total < ${num_scatters} ? total : ${num_scatters} ))
+    size=\$(( (total + n - 1) / n ))
+
+    # Extract header lines
+    grep '^@' ${interval_list} > header.txt || true
+
+    # Split body into chunks and prepend header to each
+    grep -v '^@' ${interval_list} | split -l \$size --numeric-suffixes=1 --suffix-length=4 - body_
+
+    i=1
+    for f in body_*; do
+        idx=\$(printf '%04d' \$i)
+        cat header.txt \$f > scatter_\${idx}.interval_list
+        i=\$((i + 1))
+    done
+    """
+
+    stub:
+    """
+    touch scatter_0001.interval_list
+    touch scatter_0002.interval_list
+    """
+}

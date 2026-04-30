@@ -118,6 +118,7 @@ include { AGGREGATED_BAM_QC } from './modules/qc.nf'
 include { BAM_TO_CRAM } from './modules/processing.nf'
 include { HAPLOTYPE_CALLER } from './modules/gatk.nf'
 include { DRAGEN_HARD_VARIANT_FILTRATION } from './modules/gatk.nf'
+include { SCATTER_INTERVAL_LIST } from './modules/gatk.nf'
 include { MERGE_VCFS } from './modules/gatk.nf'
 include { CHECK_CONTAMINATION } from './modules/qc.nf'
 
@@ -397,33 +398,25 @@ workflow {
         base_file_name
     )
 
-    // Variant calling
+    // Split interval list into scattered files — one file per parallel HC job
     calling_interval_ch = Channel.fromPath(params.calling_interval_list, checkIfExists: true)
-    //evaluation_interval_ch = Channel.fromPath(params.evaluation_interval_list, checkIfExists: true)
-    dbsnp_vcf_ch = Channel.fromPath(params.dbsnp_vcf, checkIfExists: true)
-    dbsnp_vcf_index_ch = Channel.fromPath(params.dbsnp_vcf_index, checkIfExists: true)
+    SCATTER_INTERVAL_LIST(
+        calling_interval_ch,
+        params.haplotype_scatter_count
+    )
+    scattered_intervals_ch = SCATTER_INTERVAL_LIST.out.scattered_intervals.flatten()
 
-    // Split interval list into batches capped at haplotype_scatter_count → drives parallelism
-    scattered_intervals_ch = calling_interval_ch
-        .splitText()
-        .filter  { it.trim() && !it.startsWith('@') }   // skip header lines
-        .map     { it.trim() }
-        .collect()                                       // gather all intervals into a list
-        .flatMap { intervals ->
-            // Divide intervals evenly into at most haplotype_scatter_count batches
-            def n       = Math.min(params.haplotype_scatter_count, intervals.size())
-            def size    = Math.ceil(intervals.size() / n).toInteger()
-            intervals.collate(size)                      // returns list of sublists
-        }
-        .map { batch -> batch.join('\n') }               // each batch → single string passed to -L
+    // Variant calling
+    dbsnp_vcf_ch        = Channel.fromPath(params.dbsnp_vcf, checkIfExists: true)
+    dbsnp_vcf_index_ch  = Channel.fromPath(params.dbsnp_vcf_index, checkIfExists: true)
 
     HAPLOTYPE_CALLER(
-        final_bam_ch.first(),                          // broadcast BAM to all intervals
-        final_bam_index_ch.first(),                    // broadcast BAM index
+        final_bam_ch.first(),
+        final_bam_index_ch.first(),
         reference_fasta_ch.first(),
         reference_fasta_index_ch.first(),
         reference_dict_ch.first(),
-        scattered_intervals_ch,                        // ← one per parallel job
+        scattered_intervals_ch,                        // ← one interval_list file per parallel job
         dbsnp_vcf_ch.first(),
         dbsnp_vcf_index_ch.first(),
         CHECK_CONTAMINATION.out.contamination_value.first(),
