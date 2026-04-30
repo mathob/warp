@@ -19,8 +19,8 @@ process MARK_DUPLICATES {
     val base_name
     
     output:
-    path "${base_name}.duplicates_marked.bam", emit: marked_bam
-    path "${base_name}.duplicate_metrics.txt", emit: duplicate_metrics
+    path "${base_name}.chunk_*.duplicates_marked.bam", emit: marked_bam
+    path "${base_name}.chunk_*.duplicate_metrics.txt", emit: duplicate_metrics
     path "versions.yml", emit: versions
     
     when:
