@@ -28,8 +28,8 @@ process MARK_DUPLICATES {
     
     script:
     def chunk_id   = (input_bam.name =~ /chunk_(\d+).aligned/)[0]?[1] ?: "000"
-    def output_bam = "${sample_name}.chunk_${chunk_id}.duplicates_marked.bam"
-    def output_metrics = "${sample_name}.chunk_${chunk_id}.duplicate_metrics.txt"
+    def output_bam = "${base_name}.chunk_${chunk_id}.duplicates_marked.bam"
+    def output_metrics = "${base_name}.chunk_${chunk_id}.duplicate_metrics.txt"
     def args = task.ext.args ?: ''
     def avail_mem = 3072
     if (!task.memory) {
