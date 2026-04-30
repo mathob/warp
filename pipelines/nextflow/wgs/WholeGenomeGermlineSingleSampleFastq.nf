@@ -118,6 +118,7 @@ include { AGGREGATED_BAM_QC } from './modules/qc.nf'
 include { BAM_TO_CRAM } from './modules/processing.nf'
 include { HAPLOTYPE_CALLER } from './modules/gatk.nf'
 include { DRAGEN_HARD_VARIANT_FILTRATION } from './modules/gatk.nf'
+include { MERGE_VCFS } from './modules/gatk.nf'
 include { CHECK_CONTAMINATION } from './modules/qc.nf'
 
 /*
@@ -398,32 +399,55 @@ workflow {
 
     // Variant calling
     calling_interval_ch = Channel.fromPath(params.calling_interval_list, checkIfExists: true)
-    evaluation_interval_ch = Channel.fromPath(params.evaluation_interval_list, checkIfExists: true)
+    //evaluation_interval_ch = Channel.fromPath(params.evaluation_interval_list, checkIfExists: true)
     dbsnp_vcf_ch = Channel.fromPath(params.dbsnp_vcf, checkIfExists: true)
     dbsnp_vcf_index_ch = Channel.fromPath(params.dbsnp_vcf_index, checkIfExists: true)
 
+    // Split interval list into batches capped at haplotype_scatter_count → drives parallelism
+    scattered_intervals_ch = calling_interval_ch
+        .splitText()
+        .filter  { it.trim() && !it.startsWith('@') }   // skip header lines
+        .map     { it.trim() }
+        .collect()                                       // gather all intervals into a list
+        .flatMap { intervals ->
+            // Divide intervals evenly into at most haplotype_scatter_count batches
+            def n       = Math.min(params.haplotype_scatter_count, intervals.size())
+            def size    = Math.ceil(intervals.size() / n).toInteger()
+            intervals.collate(size)                      // returns list of sublists
+        }
+        .map { batch -> batch.join('\n') }               // each batch → single string passed to -L
+
     HAPLOTYPE_CALLER(
-        final_bam_ch,
-        final_bam_index_ch,
-        reference_fasta_ch,
-        reference_fasta_index_ch,
-        reference_dict_ch,
-        calling_interval_ch,
-        dbsnp_vcf_ch,
-        dbsnp_vcf_index_ch,
-        CHECK_CONTAMINATION.out.contamination_value,
+        final_bam_ch.first(),                          // broadcast BAM to all intervals
+        final_bam_index_ch.first(),                    // broadcast BAM index
+        reference_fasta_ch.first(),
+        reference_fasta_index_ch.first(),
+        reference_dict_ch.first(),
+        scattered_intervals_ch,                        // ← one per parallel job
+        dbsnp_vcf_ch.first(),
+        dbsnp_vcf_index_ch.first(),
+        CHECK_CONTAMINATION.out.contamination_value.first(),
         final_gvcf_base_name,
         use_gatk3_haplotype_caller_,
         run_dragen_mode_variant_calling_,
         use_spanning_event_genotyping_,
-        CALIBRATE_DRAGSTR_MODEL.out.dragstr_model
+        run_dragen_mode_variant_calling_
+            ? CALIBRATE_DRAGSTR_MODEL.out.dragstr_model.first()
+            : Channel.value([])
+    )
+
+    // Gather all per-interval GVCFs into a single GVCF
+    MERGE_VCFS(
+        HAPLOTYPE_CALLER.out.gvcf.collect(),
+        HAPLOTYPE_CALLER.out.gvcf_index.collect(),
+        reference_dict_ch,
+        final_gvcf_base_name
     )
 
     if (run_dragen_mode_variant_calling_) {
-
         DRAGEN_HARD_VARIANT_FILTRATION(
-            HAPLOTYPE_CALLER.out.gvcf,
-            HAPLOTYPE_CALLER.out.gvcf_index,
+            MERGE_VCFS.out.merged_vcf,
+            MERGE_VCFS.out.merged_vcf_index,
             reference_fasta_ch,
             reference_fasta_index_ch,
             reference_dict_ch,

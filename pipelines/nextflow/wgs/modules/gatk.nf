@@ -153,7 +153,7 @@ process HAPLOTYPE_CALLER {
     script:
     def args = task.ext.args ?: ''
     def memory_gb = task.memory.toGiga()
-    def intervals_arg = calling_interval_list ? "--intervals ${calling_interval_list}" : ""
+    def interval_args   = interval_list.split('\n').collect { "-L ${it}" }.join(" \\\n        ")
     def dbsnp_arg = dbsnp_vcf ? "--dbsnp ${dbsnp_vcf}" : ""
     def contamination_arg = contamination_value ? "--contamination-fraction-to-filter ${contamination_value}" : ""
     def dragen_mode_arg = run_dragen_mode_variant_calling ? "--dragen-mode" : ""
@@ -304,3 +304,45 @@ process DRAGEN_HARD_VARIANT_FILTRATION {
     """
 }
 
+
+process MERGE_VCFS {
+
+    tag "${base_name}"
+    label 'gatk'
+
+    publishDir "${params.outdir}/variants", mode: 'copy'
+
+    input:
+    path vcfs                   // collected list of per-interval GVCFs
+    path vcf_indices
+    path reference_dict
+    val  base_name
+
+    output:
+    path "${base_name}.g.vcf.gz",     emit: merged_vcf
+    path "${base_name}.g.vcf.gz.tbi", emit: merged_vcf_index
+    path "versions.yml",              emit: versions
+
+    script:
+    def mem_gb = task.memory ? (task.memory.toGiga() - 1) : 6
+    def input_args = vcfs.collect { "-I ${it}" }.join(" \\\n        ")
+    """
+    gatk --java-options "-Xmx${mem_gb}g" \
+        MergeVcfs \
+        ${input_args} \
+        -D ${reference_dict} \
+        -O ${base_name}.g.vcf.gz
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        gatk: \$(gatk --version 2>&1 | grep -o 'v[0-9].*')
+    END_VERSIONS
+    """
+
+    stub:
+    """
+    touch ${base_name}.g.vcf.gz
+    touch ${base_name}.g.vcf.gz.tbi
+    touch versions.yml
+    """
+}
