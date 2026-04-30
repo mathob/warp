@@ -132,7 +132,7 @@ process HAPLOTYPE_CALLER {
     path reference_fasta
     path reference_fasta_index
     path reference_dict
-    path calling_interval_list
+    path interval_list
     path dbsnp_vcf
     path dbsnp_vcf_index
     val contamination_value
@@ -153,7 +153,6 @@ process HAPLOTYPE_CALLER {
     script:
     def args = task.ext.args ?: ''
     def memory_gb = task.memory.toGiga()
-    def interval_args   = interval_list.split('\n').collect { "-L ${it}" }.join(" \\\n        ")
     def dbsnp_arg = dbsnp_vcf ? "--dbsnp ${dbsnp_vcf}" : ""
     def contamination_arg = contamination_value ? "--contamination-fraction-to-filter ${contamination_value}" : ""
     def dragen_mode_arg = run_dragen_mode_variant_calling ? "--dragen-mode" : ""
@@ -164,7 +163,7 @@ process HAPLOTYPE_CALLER {
     gatk --java-options "-Xmx${memory_gb-1}G" HaplotypeCaller \\
         --reference ${reference_fasta} \\
         --input ${input_bam} \\
-        ${intervals_arg} \\
+        -L ${interval_list} \\
         --output ${base_name}.g.vcf.gz \\
         ${contamination_arg} \\
         -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation \\
