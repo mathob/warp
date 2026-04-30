@@ -143,8 +143,8 @@ process HAPLOTYPE_CALLER {
     path dragstr_model
     
     output:
-    path "${base_name}.g.vcf.gz", emit: gvcf
-    path "${base_name}.g.vcf.gz.tbi", emit: gvcf_index
+    path "${base_name}.scatter_*.g.vcf.gz", emit: gvcf
+    path "${base_name}.scatter_*.g.vcf.gz.tbi", emit: gvcf_index
     path "versions.yml", emit: versions
     
     when:
@@ -152,6 +152,8 @@ process HAPLOTYPE_CALLER {
     
     script:
     def args = task.ext.args ?: ''
+    //get scatter id from list filename which is e.g. scatter_0004.interval_list
+    def scatter_id = (interval_list.name =~ /scatter_(\d+).interval_list/)[0]?[1] ?: "000"
     def memory_gb = task.memory.toGiga()
     def dbsnp_arg = dbsnp_vcf ? "--dbsnp ${dbsnp_vcf}" : ""
     def contamination_arg = contamination_value ? "--contamination-fraction-to-filter ${contamination_value}" : ""
@@ -164,7 +166,7 @@ process HAPLOTYPE_CALLER {
         --reference ${reference_fasta} \\
         --input ${input_bam} \\
         -L ${interval_list} \\
-        --output ${base_name}.g.vcf.gz \\
+        --output ${base_name}.scatter_${scatter_id}.g.vcf.gz \\
         ${contamination_arg} \\
         -G StandardAnnotation -G StandardHCAnnotation -G AS_StandardAnnotation \\
         ${dragen_mode_arg} \\
