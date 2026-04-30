@@ -27,7 +27,7 @@ process MARK_DUPLICATES {
     task.ext.when == null || task.ext.when
     
     script:
-    def chunk_id   = (input_bam.name =~ /chunk_(\d+).unmapped/)[0]?[1] ?: "000"
+    def chunk_id   = (input_bam.name =~ /chunk_(\d+).aligned/)[0]?[1] ?: "000"
     def output_bam = "${sample_name}.chunk_${chunk_id}.duplicates_marked.bam"
     def output_metrics = "${sample_name}.chunk_${chunk_id}.duplicate_metrics.txt"
     def args = task.ext.args ?: ''
