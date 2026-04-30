@@ -119,7 +119,6 @@ process APPLY_BQSR {
 process HAPLOTYPE_CALLER {
     tag "${base_name}"
     label 'process_high'
-    publishDir "${params.outdir}/variants", mode: 'copy'
     
     conda (params.enable_conda ? "bioconda::gatk4=4.4.0.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -312,6 +311,11 @@ process MERGE_VCFS {
     label 'gatk'
 
     publishDir "${params.outdir}/variants", mode: 'copy'
+
+    conda (params.enable_conda ? "bioconda::gatk4=4.4.0.0" : null)
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.2.2.0' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/gatk:4.2.2.0' }"
 
     input:
     path vcfs                   // collected list of per-interval GVCFs
