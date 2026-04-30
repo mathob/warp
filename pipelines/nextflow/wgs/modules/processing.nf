@@ -27,6 +27,9 @@ process MARK_DUPLICATES {
     task.ext.when == null || task.ext.when
     
     script:
+    def chunk_id   = (input_bam.name =~ /chunk_(\d+).unmapped/)[0]?[1] ?: "000"
+    def output_bam = "${sample_name}.chunk_${chunk_id}.duplicates_marked.bam"
+    def output_metrics = "${sample_name}.chunk_${chunk_id}.duplicate_metrics.txt"
     def args = task.ext.args ?: ''
     def avail_mem = 3072
     if (!task.memory) {
@@ -38,8 +41,8 @@ process MARK_DUPLICATES {
     """
     java -Xmx${avail_mem}M -jar /usr/picard/picard.jar MarkDuplicates \\
         INPUT=${input_bam} \\
-        OUTPUT=${base_name}.duplicates_marked.bam \\
-        METRICS_FILE=${base_name}.duplicate_metrics.txt \\
+        OUTPUT=${output_bam} \\
+        METRICS_FILE=${output_metrics} \\
         VALIDATION_STRINGENCY=SILENT \\
         OPTICAL_DUPLICATE_PIXEL_DISTANCE=2500 \\
         ASSUME_SORT_ORDER=queryname \\
