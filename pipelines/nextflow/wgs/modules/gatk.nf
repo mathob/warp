@@ -361,6 +361,11 @@ process SCATTER_INTERVAL_LIST {
     tag "scatter_${num_scatters}"
     label 'process_low'
 
+    conda (params.enable_conda ? "bioconda::picard=3.0.0" : null)
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/picard-cloud:2.23.8' :
+        'australia-southeast1-docker.pkg.dev/pb-dev-312200/nagim-images/picard-cloud:2.23.8' }"
+
     input:
     path interval_list
     val  num_scatters
@@ -369,24 +374,36 @@ process SCATTER_INTERVAL_LIST {
     path "scatter_*.interval_list", emit: scattered_intervals
 
     script:
+    def args = task.ext.args ?: ''
+    def avail_mem = 3072
+    if (!task.memory) {
+        log.info '[Picard IntervalListTools] Available memory not known - defaulting to 3GB. Specify process memory requirements to change this.'
+    } else {
+        avail_mem = (task.memory.mega*0.8).intValue()
+    }
+    
     """
-    # Count non-header intervals
-    total=\$(grep -v '^@' ${interval_list} | wc -l)
-    n=\$(( total < ${num_scatters} ? total : ${num_scatters} ))
-    size=\$(( (total + n - 1) / n ))
+    mkdir out
+    java -Xmx${avail_mem}M -jar /usr/gitc/picard.jar \
+    IntervalListTools \
+    SCATTER_COUNT=${num_scatters} \
+    SUBDIVISION_MODE=BALANCING_WITHOUT_INTERVAL_SUBDIVISION_WITH_OVERFLOW \
+    UNIQUE=true \
+    SORT=true \
+    BREAK_BANDS_AT_MULTIPLES_OF=100000 \
+    INPUT=${interval_list} \
+    OUTPUT=out
 
-    # Extract header lines
-    grep '^@' ${interval_list} > header.txt || true
+    python3 <<CODE
+import glob, os
+intervals = sorted(glob.glob("out/*/*.interval_list"))
+for i, interval in enumerate(intervals):
+    (directory, filename) = os.path.split(interval)
+    newName = "scatter_{:04d}.interval_list".format(i)
+    os.rename(interval, newName)
+CODE
 
-    # Split body into chunks and prepend header to each
-    grep -v '^@' ${interval_list} | split -l \$size --numeric-suffixes=1 --suffix-length=4 - body_
 
-    i=1
-    for f in body_*; do
-        idx=\$(printf '%04d' \$i)
-        cat header.txt \$f > scatter_\${idx}.interval_list
-        i=\$((i + 1))
-    done
     """
 
     stub:
