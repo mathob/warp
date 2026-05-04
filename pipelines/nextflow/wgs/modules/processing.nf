@@ -185,6 +185,7 @@ process BAM_TO_CRAM {
  * Split FASTQ files into chunks for parallel alignment
  */
 process SPLIT_FASTQ {
+    label 'process_low'
 
     input:
     path fastq_r1
