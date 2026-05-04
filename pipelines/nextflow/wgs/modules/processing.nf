@@ -208,7 +208,7 @@ process SPLIT_FASTQ {
     reads_per_chunk=\$(( (total_reads + ${num_chunks} - 1) / ${num_chunks} ))
     lines_per_chunk=\$((reads_per_chunk * 4))
 
-    fastp -i ${fastq_r1} -I ${fastq_r2} -S ${lines_per_chunk} -o chunk.R1.fq.gz -O chunk.R2.fq.gz
+    fastp -i ${fastq_r1} -I ${fastq_r2} -S \${lines_per_chunk} -o chunk.R1.fq.gz -O chunk.R2.fq.gz
 
 
     """
