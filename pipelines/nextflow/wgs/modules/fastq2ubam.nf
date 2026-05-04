@@ -34,7 +34,7 @@ process FASTQ2UBAM {
     
     script:
     def args = task.ext.args ?: ''
-    def chunk_id = (fastq_r1.name =~ /chunk_(\d+)_R1/)[0]?[1] ?: "000"
+    def chunk_id = (fastq_r1.name =~ /(\d+).chunk.R1/)[0]?[1] ?: "000"
     def output_bam = "${sample_name}.chunk_${chunk_id}.unmapped.bam"
     def avail_mem = 3072
     if (!task.memory) {

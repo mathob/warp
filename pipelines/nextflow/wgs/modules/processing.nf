@@ -187,14 +187,19 @@ process BAM_TO_CRAM {
 process SPLIT_FASTQ {
     label 'process_low'
 
+    conda "${moduleDir}/environment.yml"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/88/889a182b8066804f4799f3808a5813ad601381a8a0e3baa4ab8d73e739b97001/data' :
+        'community.wave.seqera.io/library/fastp:0.24.0--62c97b06e8447690' }"
+
     input:
     path fastq_r1
     path fastq_r2
     val  num_chunks
 
     output:
-    path "chunk_*_R1.fastq.gz", emit: fastq_r1_chunks
-    path "chunk_*_R2.fastq.gz", emit: fastq_r2_chunks
+    path "*.chunk.R1.fastq.gz", emit: fastq_r1_chunks
+    path "*.chunk.R2.fastq.gz", emit: fastq_r2_chunks
 
     script:
     """
@@ -203,14 +208,9 @@ process SPLIT_FASTQ {
     reads_per_chunk=\$(( (total_reads + ${num_chunks} - 1) / ${num_chunks} ))
     lines_per_chunk=\$((reads_per_chunk * 4))
 
-    zcat ${fastq_r1} | split -l \$lines_per_chunk --numeric-suffixes=1 --suffix-length=4 - chunk_r1_
-    zcat ${fastq_r2} | split -l \$lines_per_chunk --numeric-suffixes=1 --suffix-length=4 - chunk_r2_
+    fastp -i ${fastq_r1} -I ${fastq_r2} -S ${lines_per_chunk} -o chunk.R1.fq.gz -O chunk.R2.fq.gz
 
-    for f in chunk_r1_*; do
-        idx=\${f##*_}
-        gzip -c \$f > chunk_\${idx}_R1.fastq.gz
-        gzip -c chunk_r2_\${idx} > chunk_\${idx}_R2.fastq.gz
-    done
+
     """
 
     stub:
