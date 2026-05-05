@@ -94,7 +94,7 @@ task FastqToSam {
   >>>
   runtime {
     docker: "australia-southeast1-docker.pkg.dev/pb-dev-312200/warp/picard-cloud:2.26.10"
-    disks: "local-disk " + 400 + " HDD"
+    disks: "local-disk " + 800 + " HDD"
     memory: "6.5 GB"
     preemptible: 3
   }
