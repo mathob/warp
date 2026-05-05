@@ -1,7 +1,7 @@
 version 1.0
 
 import "../../../../pipelines/broad/dna_seq/germline/single_sample/wgs/WholeGenomeGermlineSingleSample.wdl" as WholeGenomeGermlineSingleSample
-import "../../../../pipelines/broad/reprocessing/fastq_to_unmapped_bams/FastqToUnmappedBams.wdl" as ToUbams
+import "../../../../pipelines/broad/reprocessing/fastq_to_unmapped_bams/FastqToUnmappedBams.wdl" as FastqsToUbams
 import "../../../../structs/dna_seq/DNASeqStructs.wdl"
 
 workflow WholeGenomeFromFastq {
@@ -33,7 +33,7 @@ workflow WholeGenomeFromFastq {
     File wgs_coverage_interval_list
   }
 
-  call ToUbams.FastqToUnmappedBams {
+  call FastqsToUbams.FastqToUnmappedBams {
     input:
       input_R1 = input_R1,
       input_R2 = input_R2,
