@@ -210,7 +210,10 @@ process SPLIT_FASTQ {
 
     fastp -i ${fastq_r1} -I ${fastq_r2} -S \${lines_per_chunk} -o chunk.R1.fq.gz -O chunk.R2.fq.gz
 
-
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        fastp: \$(fastp --version 2>&1 | sed -e "s/fastp //g")
+    END_VERSIONS
     """
 
     stub:
