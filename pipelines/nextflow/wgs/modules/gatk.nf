@@ -403,6 +403,10 @@ for i, interval in enumerate(intervals):
     os.rename(interval, newName)
 CODE
 
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        picard: \$(java -jar /usr/picard/picard.jar IntervalListTools --version 2>&1 | grep -o 'Version:.*' | cut -f2- -d:)
+    END_VERSIONS
 
     """
 
