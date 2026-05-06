@@ -394,7 +394,7 @@ process SCATTER_INTERVAL_LIST {
     INPUT=${interval_list} \
     OUTPUT=out
 
-    python3 <<CODE
+    python <<CODE
 import glob, os
 intervals = sorted(glob.glob("out/*/*.interval_list"))
 for i, interval in enumerate(intervals):
