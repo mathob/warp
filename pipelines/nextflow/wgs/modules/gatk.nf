@@ -384,7 +384,7 @@ process SCATTER_INTERVAL_LIST {
     
     """
     mkdir out
-    java -Xmx${avail_mem}M -jar /usr/gitc/picard.jar \
+    java -Xmx${avail_mem}M -jar /usr/picard/picard.jar \
     IntervalListTools \
     SCATTER_COUNT=${num_scatters} \
     SUBDIVISION_MODE=BALANCING_WITHOUT_INTERVAL_SUBDIVISION_WITH_OVERFLOW \
