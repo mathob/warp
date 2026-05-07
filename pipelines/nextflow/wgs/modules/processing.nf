@@ -207,6 +207,9 @@ process SPLIT_FASTQ {
     total_reads=\$((total_reads / 4))
     reads_per_chunk=\$(( (total_reads + ${num_chunks} - 1) / ${num_chunks} ))
     lines_per_chunk=\$((reads_per_chunk * 4))
+    #seems on gadi that dragen-os chokes with too many lines so limit to 100k read pairs per chunk
+    max_lines=400000
+    lines_per_chunk=\$(( lines_per_chunk < max_lines ? lines_per_chunk : max_lines ))
 
     fastp -i ${fastq_r1} -I ${fastq_r2} -S \${lines_per_chunk} -o chunk.R1.fastq.gz -O chunk.R2.fastq.gz
 
