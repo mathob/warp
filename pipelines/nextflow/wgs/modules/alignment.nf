@@ -85,7 +85,7 @@ process BWA_MEM_ALIGN {
  */
 process DRAGMAP_ALIGN {
     tag "${sample_name}"
-    #label 'process_high'
+    //label 'process_high'
     
     conda (params.enable_conda ? "bioconda::dragmap=1.2.1 bioconda::samtools=1.17" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
