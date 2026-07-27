@@ -135,6 +135,10 @@ workflows:
     subclass: WDL
     primaryDescriptorPath: /pipelines/broad/reprocessing/wgs/WholeGenomeFromFastq.wdl
 
+  - name: WholeGenomeAlignmentOnly
+    subclass: WDL
+    primaryDescriptorPath: /pipelines/broad/reprocessing/wgs/WholeGenomeGermlineSingleSampleAlignmentOnly.wdl
+ 
   - name: AS_VQSR
     subclass: WDL
     primaryDescriptorPath: /pipelines/broad/dna_seq/germline/AS_VQSR/AS_VQSR.wdl
